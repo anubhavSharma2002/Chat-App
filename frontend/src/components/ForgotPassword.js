@@ -1,24 +1,24 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import { api } from '../api';
 
 function ForgotPassword({ setScreen }) {
   const [email, setEmail] = useState('');
 
-  const handleSubmit = async () => {
+  const handleReset = async () => {
     try {
-      const res = await axios.post('http://localhost:5000/auth/forgot-password', { email });
+      const res = await api.post('/auth/forgot-password', { email });
       alert(res.data.message);
-    } catch {
-      alert('User not found');
+    } catch (err) {
+      alert(err.response?.data?.message || 'Something went wrong');
     }
   };
 
   return (
     <div>
       <h2>Forgot Password</h2>
-      <input placeholder="Enter your email" onChange={e => setEmail(e.target.value)} />
-      <button onClick={handleSubmit}>Submit</button>
-      <button onClick={() => setScreen('login')}>Back</button>
+      <input placeholder="Email" onChange={e => setEmail(e.target.value)} />
+      <button onClick={handleReset}>Reset Password</button>
+      <button onClick={() => setScreen('login')}>Back to Login</button>
     </div>
   );
 }

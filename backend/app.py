@@ -8,12 +8,16 @@ import os
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chat.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# CORS for cookies/session support
 CORS(app, supports_credentials=True)
 
 db.init_app(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
 app.register_blueprint(auth_bp, url_prefix='/auth')
 
+# Room naming convention
 def get_room_name(user1, user2):
     return "_".join(sorted([user1, user2]))
 
@@ -50,5 +54,7 @@ def handle_message(data):
     }, to=room)
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
+    with app.app_context():
+        db.create_all()
+    port = int(os.environ.get('PORT', 5050))
     socketio.run(app, host='0.0.0.0', port=port)

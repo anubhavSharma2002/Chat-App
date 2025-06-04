@@ -35,12 +35,22 @@ function ChatBox({ userId, chatWith, setScreen }) {
   return (
     <div>
       <h3>Chat with: {chatWith}</h3>
-      <div style={{ border: '1px solid #ccc', height: '200px', overflowY: 'scroll' }}>
+      <div style={{ border: '1px solid #ccc', height: '250px', overflowY: 'scroll', marginBottom: 10 }}>
         {messages.map((msg, idx) => (
-          <div key={idx}><b>{msg.sender}:</b> {msg.message}</div>
+          <div key={idx}>
+            <b>{msg.sender}:</b> {msg.message}
+            <small style={{ marginLeft: 10, color: 'gray' }}>
+              {new Date(msg.timestamp).toLocaleString()}
+            </small>
+          </div>
         ))}
       </div>
-      <input value={message} onChange={e => setMessage(e.target.value)} placeholder="Type a message" />
+      <input
+        value={message}
+        onChange={e => setMessage(e.target.value)}
+        placeholder="Type a message"
+        style={{ width: '80%' }}
+      />
       <button onClick={sendMessage}>Send</button>
       <button onClick={() => setScreen('select')}>Back</button>
     </div>

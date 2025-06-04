@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import { api } from '../api';
 
 function Register({ setScreen }) {
   const [email, setEmail] = useState('');
@@ -7,11 +7,11 @@ function Register({ setScreen }) {
 
   const handleRegister = async () => {
     try {
-      const res = await axios.post('http://localhost:5000/auth/register', { email, password });
+      const res = await api.post('/auth/register', { email, password });
       alert(res.data.message);
       setScreen('login');
     } catch (err) {
-      alert('Registration failed');
+      alert(err.response?.data?.message || 'Registration failed');
     }
   };
 

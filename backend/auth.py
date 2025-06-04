@@ -1,16 +1,23 @@
 from flask import Blueprint, request, jsonify
 from models import db, User
+from werkzeug.security import generate_password_hash, check_password_hash
 
 auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
-    email = data['email']
-    password = data['password']
+    email = data.get('email')
+    password = data.get('password')
+
+    if not email or not password:
+        return jsonify({"success": False, "message": "Email and password required"}), 400
+
     if User.query.filter_by(email=email).first():
         return jsonify({"success": False, "message": "User already exists"}), 400
-    new_user = User(email=email, password=password)
+
+    password_hash = generate_password_hash(password)
+    new_user = User(email=email, password_hash=password_hash)
     db.session.add(new_user)
     db.session.commit()
     return jsonify({"success": True, "message": "Registered successfully"})
@@ -18,8 +25,11 @@ def register():
 @auth_bp.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
-    user = User.query.filter_by(email=data['email'], password=data['password']).first()
-    if user:
+    email = data.get('email')
+    password = data.get('password')
+
+    user = User.query.filter_by(email=email).first()
+    if user and check_password_hash(user.password_hash, password):
         return jsonify({"success": True, "user_id": user.email})
     return jsonify({"success": False, "message": "Invalid credentials"}), 401
 
@@ -28,7 +38,8 @@ def forgot_password():
     data = request.get_json()
     user = User.query.filter_by(email=data['email']).first()
     if user:
-        return jsonify({"success": True, "message": "Password reset logic not implemented"})
+        # Placeholder: add real reset logic
+        return jsonify({"success": True, "message": "Password reset not implemented"})
     return jsonify({"success": False, "message": "User not found"}), 404
 
 @auth_bp.route('/check-user', methods=['POST'])

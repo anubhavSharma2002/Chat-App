@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import { api } from '../api';
 
 function Login({ setScreen, setUserId }) {
   const [email, setEmail] = useState('');
@@ -7,7 +7,8 @@ function Login({ setScreen, setUserId }) {
 
   const handleLogin = async () => {
     try {
-      const res = await axios.post('http://localhost:5000/auth/login', { email, password });
+      const res = await api.post('/auth/login', { email, password });
+      localStorage.setItem('userId', res.data.user_id);
       setUserId(res.data.user_id);
       setScreen('select');
     } catch {

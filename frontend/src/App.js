@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Login from './components/Login';
 import Register from './components/Register';
 import ForgotPassword from './components/ForgotPassword';
@@ -9,6 +9,14 @@ function App() {
   const [screen, setScreen] = useState('login');
   const [userId, setUserId] = useState(null);
   const [chatWith, setChatWith] = useState(null);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('userId');
+    if (storedUser) {
+      setUserId(storedUser);
+      setScreen('select');
+    }
+  }, []);
 
   if (screen === 'register') return <Register setScreen={setScreen} />;
   if (screen === 'forgot') return <ForgotPassword setScreen={setScreen} />;
