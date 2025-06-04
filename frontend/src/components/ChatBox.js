@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 
-const socket = io('https://chat-app-3i4l.onrender.com');
+const socket = io('https://chat-app-3i4l.onrender.com', {
+  transports: ['websocket'],
+  withCredentials: true,
+});
 
 function ChatBox({ userId, chatWith, setScreen }) {
   const [message, setMessage] = useState('');
