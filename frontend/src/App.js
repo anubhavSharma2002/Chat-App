@@ -4,27 +4,37 @@ import Register from './components/Register';
 import ForgotPassword from './components/ForgotPassword';
 import UserSelect from './components/UserSelect';
 import ChatBox from './components/ChatBox';
+import './App.css';
 
 function App() {
-  const [screen, setScreen] = useState('login');
+  const [screen, setScreen] = useState('loading');
   const [userId, setUserId] = useState(null);
   const [chatWith, setChatWith] = useState(null);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('userId');
-    if (storedUser) {
-      setUserId(storedUser);
-      setScreen('select');
-    }
+    setTimeout(() => {
+      if (storedUser) {
+        setUserId(storedUser);
+        setScreen('select');
+      } else {
+        setScreen('login');
+      }
+    }, 1000); // simulate loading delay
   }, []);
 
-  if (screen === 'register') return <Register setScreen={setScreen} />;
-  if (screen === 'forgot') return <ForgotPassword setScreen={setScreen} />;
-  if (screen === 'login') return <Login setScreen={setScreen} setUserId={setUserId} />;
-  if (screen === 'select') return <UserSelect setChatWith={setChatWith} setScreen={setScreen} />;
-  if (screen === 'chat') return <ChatBox userId={userId} chatWith={chatWith} setScreen={setScreen} />;
+  const renderScreen = () => {
+    switch (screen) {
+      case 'login': return <Login setScreen={setScreen} setUserId={setUserId} />;
+      case 'register': return <Register setScreen={setScreen} />;
+      case 'forgot': return <ForgotPassword setScreen={setScreen} />;
+      case 'select': return <UserSelect setChatWith={setChatWith} setScreen={setScreen} />;
+      case 'chat': return <ChatBox userId={userId} chatWith={chatWith} setScreen={setScreen} />;
+      default: return <div className="spinner"></div>;
+    }
+  };
 
-  return null;
+  return <div className="app-container fade-in">{renderScreen()}</div>;
 }
 
 export default App;

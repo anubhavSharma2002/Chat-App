@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { api } from '../api';
-import './UserSelect.css';
 
 function UserSelect({ setChatWith, setScreen }) {
   const [otherId, setOtherId] = useState('');
@@ -24,14 +23,15 @@ function UserSelect({ setChatWith, setScreen }) {
     setScreen('login');
   };
 
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') handleStartChat();
-  };
-
   return (
-    <div className="userselect-container">
+    <div className="fade-in">
       <h2>Start Chat</h2>
-      <input placeholder="Enter email of user to chat" value={otherId} onChange={e => setOtherId(e.target.value)} onKeyDown={handleKeyDown} />
+      <input
+        placeholder="Enter email of user to chat"
+        value={otherId}
+        onChange={e => setOtherId(e.target.value)}
+        onKeyDown={e => e.key === 'Enter' && handleStartChat()}
+      />
       <button onClick={handleStartChat}>Chat</button>
       <button onClick={handleLogout}>Logout</button>
     </div>

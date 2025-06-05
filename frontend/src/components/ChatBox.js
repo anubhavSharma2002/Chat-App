@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
-import './ChatBox.css';
 
 const socket = io('https://chat-app-4apm.onrender.com', {
   transports: ['websocket'],
@@ -36,29 +35,32 @@ function ChatBox({ userId, chatWith, setScreen }) {
     }
   };
 
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') sendMessage();
-  };
-
   return (
-    <div className="chatbox-container">
-      <h3>Chat with: {chatWith}</h3>
-      <div className="chat-messages">
+    <div className="fade-in">
+      <h2>Chat with: {chatWith}</h2>
+      <div style={{
+        border: '2px solid #ffcc80',
+        borderRadius: '10px',
+        background: '#fff8e1',
+        height: '300px',
+        overflowY: 'scroll',
+        padding: '10px',
+        marginBottom: 10
+      }}>
         {messages.map((msg, idx) => (
-          <div key={idx} className="chat-message">
-            <b>{msg.sender}:</b> {msg.message}
-            <small className="timestamp">
+          <div key={idx} className="message-box">
+            <strong>{msg.sender}:</strong> {msg.message}
+            <div style={{ fontSize: '0.75em', color: 'gray' }}>
               {new Date(msg.timestamp).toLocaleString()}
-            </small>
+            </div>
           </div>
         ))}
       </div>
       <input
         value={message}
         onChange={e => setMessage(e.target.value)}
-        onKeyDown={handleKeyDown}
+        onKeyDown={e => e.key === 'Enter' && sendMessage()}
         placeholder="Type a message"
-        className="message-input"
       />
       <button onClick={sendMessage}>Send</button>
       <button onClick={() => setScreen('select')}>Back</button>

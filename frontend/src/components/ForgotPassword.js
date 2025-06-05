@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { api } from '../api';
-import './ForgotPassword.css';
 
 function ForgotPassword({ setScreen }) {
   const [email, setEmail] = useState('');
@@ -14,14 +13,15 @@ function ForgotPassword({ setScreen }) {
     }
   };
 
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') handleReset();
-  };
-
   return (
-    <div className="forgot-container">
+    <div className="fade-in">
       <h2>Forgot Password</h2>
-      <input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={handleKeyDown} />
+      <input
+        placeholder="Email"
+        value={email}
+        onChange={e => setEmail(e.target.value)}
+        onKeyDown={e => e.key === 'Enter' && handleReset()}
+      />
       <button onClick={handleReset}>Reset Password</button>
       <button onClick={() => setScreen('login')}>Back to Login</button>
     </div>
