@@ -1,100 +1,90 @@
-// ChatBox.js
-import React, { useEffect, useState, useRef } from "react";
-import io from "socket.io-client";
-import axios from "axios";
+import React, { useEffect, useState, useRef } from 'react';
+import { io } from 'socket.io-client';
 
-const socket = io("https://baatkaro.onrender.com"); // your backend URL
+const socket = io('https://chat-app-4apm.onrender.com', {
+  transports: ['websocket'],
+  withCredentials: true,
+});
 
-const ChatBox = ({ userId, chatWith, onBack }) => {
-  const [message, setMessage] = useState("");
+function ChatBox({ userId, chatWith, setScreen }) {
+  const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
-  const messagesEndRef = useRef(null);
+  const bottomRef = useRef(null);
 
   useEffect(() => {
-    axios
-      .get(`/api/messages/${userId}/${chatWith}`)
-      .then((response) => {
-        setMessages(response.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching messages:", error);
-      });
-  }, [userId, chatWith]);
+    socket.emit('join', { user: userId, other_user: chatWith });
 
-  useEffect(() => {
-    socket.on("receive_message", (data) => {
-      if (
-        (data.senderId === userId && data.receiverId === chatWith) ||
-        (data.senderId === chatWith && data.receiverId === userId)
-      ) {
-        setMessages((prev) => [...prev, data]);
-      }
+    socket.on('chat_history', (msgs) => {
+      setMessages(msgs);
     });
-    return () => socket.off("receive_message");
+
+    socket.on('receive_message', (msg) => {
+      setMessages(prev => {
+        // Deduplicate just in case by timestamp + sender + message
+        const exists = prev.some(
+          m =>
+            m.timestamp === msg.timestamp &&
+            m.sender === msg.sender &&
+            m.message === msg.message
+        );
+        if (exists) return prev;
+        return [...prev, msg];
+      });
+    });
+
+    return () => socket.off('chat_history').off('receive_message');
   }, [userId, chatWith]);
 
-  const sendMessage = () => {
-    if (!message.trim()) return;
-
-    const newMessage = {
-      senderId: userId,
-      receiverId: chatWith,
-      content: message,
-      timestamp: new Date().toLocaleTimeString("en-IN", {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: true,
-        timeZone: "Asia/Kolkata",
-      }),
-    };
-
-    socket.emit("send_message", newMessage);
-    setMessages((prev) => [...prev, newMessage]);
-    setMessage("");
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter") sendMessage();
-  };
-
-  const handleBack = () => {
-    onBack();
-  };
-
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  const sendMessage = () => {
+    if (message.trim()) {
+      const msgData = {
+        sender: userId,
+        receiver: chatWith,
+        message
+      };
+      socket.emit('send_message', msgData);
+
+      // Add message locally with current time
+      setMessages(prev => [...prev, { ...msgData, timestamp: new Date().toISOString() }]);
+      setMessage('');
+    }
+  };
+
+  const handleKey = (e) => {
+    if (e.key === 'Enter') sendMessage();
+  };
+
   return (
-    <div className="chatbox-container">
-      <h2 className="chat-header">Chat with: {chatWith}</h2>
-      <div className="messages-box">
-        {messages.map((msg, index) => (
+    <div className="chat-container">
+      <h3>Chat with: {chatWith}</h3>
+      <div className="chat-box">
+        {messages.map((msg, idx) => (
           <div
-            key={index}
-            className={`message ${msg.senderId === userId ? "sent" : "received"}`}
+            key={`${msg.timestamp}-${msg.sender}-${idx}`}
+            className={`message ${msg.sender === userId ? 'sent' : 'received'}`}
           >
-            <div>{msg.content}</div>
-            <span className="timestamp">{msg.timestamp}</span>
+            <div>{msg.message}</div>
+            <small>{new Date(new Date(msg.timestamp).getTime() + (5.5 * 60 * 60 * 1000)).toLocaleTimeString('en-IN')}</small>
           </div>
         ))}
-        <div ref={messagesEndRef} />
+        <div ref={bottomRef}></div>
       </div>
-      <div className="input-row">
+      <div className="input-area">
         <input
-          type="text"
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          onKeyDown={handleKeyDown}
+          onChange={e => setMessage(e.target.value)}
+          onKeyDown={handleKey}
           placeholder="Type a message"
-          className="message-input"
         />
-        <button onClick={sendMessage} className="send-button">Send</button>
-        <button onClick={handleBack} className="back-button">Back</button>
+        <button onClick={sendMessage}>Send</button>
+        <button onClick={() => setScreen('select')}>Back</button>
       </div>
     </div>
   );
-};
+}
 
 export default ChatBox;
