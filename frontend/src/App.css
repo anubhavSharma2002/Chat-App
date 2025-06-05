@@ -1,123 +1,127 @@
 body {
+  font-family: 'Segoe UI', sans-serif;
   margin: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(to right, #e0eafc, #cfdef3);
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  background: linear-gradient(to bottom right, #f5f7fa, #c3cfe2);
+  color: #333;
 }
 
 .app-container {
-  width: 100%;
-  max-width: 500px;
-  margin: auto;
-  padding: 1rem;
-  background-color: white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border-radius: 16px;
-  animation: fadeIn 0.5s ease-in-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-h2 {
-  text-align: center;
-  font-size: 1.5rem;
-  color: #333;
-  margin-bottom: 1rem;
-}
-
-.chat-container {
   display: flex;
-  flex-direction: column;
-  height: 80vh;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+  min-height: 100vh;
+  box-sizing: border-box;
 }
 
-.messages {
-  flex: 1;
+.form-container, .chat-container {
+  width: 100%;
+  max-width: 600px;
+  background: #fff;
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+.heading {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  color: #6a11cb;
+  text-align: center;
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: 2px solid #9d50bb;
+  border-radius: 10px;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+button {
+  padding: 10px 20px;
+  margin: 5px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(to right, #6a11cb, #2575fc);
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.3s;
+}
+
+button:hover {
+  background: linear-gradient(to right, #2575fc, #6a11cb);
+}
+
+.chat-box {
+  max-height: 60vh;
   overflow-y: auto;
+  background-color: #f1f4fc;
   padding: 1rem;
-  background-color: #f4f6fc;
   border-radius: 12px;
   margin-bottom: 1rem;
 }
 
 .message {
-  max-width: 80%;
-  padding: 0.6rem;
-  margin: 0.5rem 0;
-  border-radius: 12px;
-  font-size: 0.95rem;
-  position: relative;
+  background-color: #e0ecff;
+  padding: 10px;
+  border-radius: 8px;
+  margin: 6px 0;
+  max-width: 75%;
   word-wrap: break-word;
+  position: relative;
 }
 
-.sent {
+.message.sent {
   align-self: flex-end;
-  background-color: #d0f0c0;
+  background-color: #d1e7dd;
+  margin-left: auto;
 }
 
-.received {
+.message.received {
   align-self: flex-start;
-  background-color: #fbdada;
+  background-color: #f8d7da;
 }
 
-.timestamp {
-  font-size: 0.75rem;
-  color: #555;
-  margin-top: 0.3rem;
+.message small {
+  display: block;
   text-align: right;
+  font-size: 12px;
+  color: #555;
+  margin-top: 4px;
 }
 
-.input-container {
+.input-area {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: auto;
-  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
 }
 
-input[type="text"] {
-  flex: 1 1 70%;
-  padding: 0.6rem;
-  font-size: 1rem;
-  border: 2px solid #9900cc;
-  border-radius: 12px;
-  outline: none;
+.input-area input {
+  flex: 1;
 }
 
-button {
-  padding: 0.6rem 1.2rem;
-  font-size: 1rem;
-  background: linear-gradient(45deg, #6a11cb, #2575fc);
-  color: white;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: transform 0.2s ease;
+.loader {
+  border: 6px solid #ccc;
+  border-top: 6px solid #6a11cb;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: auto;
 }
 
-button:hover {
-  transform: scale(1.05);
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
-@media (max-width: 600px) {
-  .input-container {
-    flex-direction: row;
-    gap: 0.3rem;
-  }
-
-  input[type="text"] {
-    flex-basis: 70%;
-  }
-
-  button {
-    flex-basis: 13%;
-    padding: 0.5rem 0.6rem;
-    font-size: 0.85rem;
-  }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
