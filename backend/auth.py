@@ -8,6 +8,7 @@ auth_bp = Blueprint('auth', __name__)
 @auth_bp.route('/register', methods=['POST'])
 @cross_origin(supports_credentials=True)
 def register():
+    print("📩 Register route hit")
     try:
         data = request.get_json()
 
@@ -26,7 +27,9 @@ def register():
 
     except Exception as e:
         # Print error to server logs
-        print(f"❌ Error in /register: {e}")
+        import traceback
+        print("❌ Exception occurred in /register")
+        traceback.print_exc()
         return jsonify({'message': 'Internal server error'}), 500
 
 @auth_bp.route('/login', methods=['POST'])
