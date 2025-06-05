@@ -36,34 +36,33 @@ function ChatBox({ userId, chatWith, setScreen }) {
   };
 
   return (
-    <div className="fade-in">
+    <div className="fade-in chat-screen">
       <h2>Chat with: {chatWith}</h2>
-      <div style={{
-        border: '2px solid #ffcc80',
-        borderRadius: '10px',
-        background: '#fff8e1',
-        height: '300px',
-        overflowY: 'scroll',
-        padding: '10px',
-        marginBottom: 10
-      }}>
+      <div className="chat-container">
         {messages.map((msg, idx) => (
-          <div key={idx} className="message-box">
-            <strong>{msg.sender}:</strong> {msg.message}
-            <div style={{ fontSize: '0.75em', color: 'gray' }}>
+          <div
+            key={idx}
+            className={`message-box ${msg.sender === userId ? 'sent' : 'received'}`}
+          >
+            <div className="message-text">
+              <strong>{msg.sender === userId ? 'You' : msg.sender}:</strong> {msg.message}
+            </div>
+            <div className="timestamp">
               {new Date(msg.timestamp).toLocaleString()}
             </div>
           </div>
         ))}
       </div>
-      <input
-        value={message}
-        onChange={e => setMessage(e.target.value)}
-        onKeyDown={e => e.key === 'Enter' && sendMessage()}
-        placeholder="Type a message"
-      />
-      <button onClick={sendMessage}>Send</button>
-      <button onClick={() => setScreen('select')}>Back</button>
+      <div className="input-area">
+        <input
+          value={message}
+          onChange={e => setMessage(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && sendMessage()}
+          placeholder="Type a message"
+        />
+        <button onClick={sendMessage}>Send</button>
+        <button onClick={() => setScreen('select')}>Back</button>
+      </div>
     </div>
   );
 }

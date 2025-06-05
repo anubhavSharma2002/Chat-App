@@ -1,69 +1,17 @@
+/* App.css */
+
 body {
   margin: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #e0f7fa, #ffecb3);
-  transition: background 0.5s ease;
-}
-
-.app-container {
-  padding: 30px;
-  text-align: center;
-}
-
-input, button {
-  margin: 8px;
-  padding: 10px;
-  border: none;
-  border-radius: 10px;
-  font-size: 1em;
-  outline: none;
-}
-
-input {
-  width: 250px;
-}
-
-button {
-  background: linear-gradient(145deg, #ff6f61, #ffcc80);
-  color: white;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-button:hover {
-  transform: scale(1.05);
-}
-
-h1 {
-  font-size: 3rem;
-  margin-bottom: 20px;
-  background: -webkit-linear-gradient(#ff6f61, #ffcc80);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  font-weight: bold;
-  animation: slideDown 1s ease;
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #ffecd2, #fcb69f);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .fade-in {
-  animation: fadeIn 0.8s ease;
-}
-
-.spinner {
-  border: 8px solid #f3f3f3;
-  border-top: 8px solid #ff6f61;
-  border-radius: 50%;
-  width: 60px;
-  height: 60px;
-  margin: 100px auto;
-  animation: spin 1s linear infinite;
-}
-
-.message-box {
-  background-color: white;
-  border-radius: 10px;
-  padding: 10px;
-  margin: 5px 0;
-  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  animation: fadeIn 0.5s ease-in;
 }
 
 @keyframes fadeIn {
@@ -71,12 +19,76 @@ h1 {
   to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes slideDown {
-  from { transform: translateY(-50px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+input, button {
+  margin: 8px;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  transition: all 0.2s ease-in-out;
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+button {
+  background-color: #ff9800;
+  color: white;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #f57c00;
+}
+
+.chat-screen {
+  width: 100%;
+  max-width: 600px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
+
+.chat-container {
+  height: 300px;
+  overflow-y: auto;
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 2px solid #ffa726;
+  border-radius: 8px;
+  background-color: #fff3e0;
+}
+
+.message-box {
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 8px;
+  max-width: 75%;
+  clear: both;
+}
+
+.message-box.sent {
+  background: #c8e6c9;
+  align-self: flex-end;
+  float: right;
+}
+
+.message-box.received {
+  background: #bbdefb;
+  align-self: flex-start;
+  float: left;
+}
+
+.message-text {
+  font-size: 15px;
+}
+
+.timestamp {
+  font-size: 11px;
+  color: #555;
+  margin-top: 4px;
+  text-align: right;
+}
+
+.input-area {
+  display: flex;
+  gap: 10px;
 }
