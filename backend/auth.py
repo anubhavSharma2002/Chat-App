@@ -1,10 +1,10 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, make_response
 from models import db, User
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask import make_response
 
 auth_bp = Blueprint('auth', __name__)
 
+# Handle CORS preflight manually for /register route
 @auth_bp.route('/register', methods=['OPTIONS'])
 def register_options():
     response = make_response()
@@ -13,7 +13,6 @@ def register_options():
     response.headers.add("Access-Control-Allow-Headers", "Content-Type, Authorization")
     response.headers.add("Access-Control-Allow-Credentials", "true")
     return response
-
 
 @auth_bp.route('/register', methods=['POST'])
 def register():
@@ -49,7 +48,6 @@ def forgot_password():
     data = request.get_json()
     user = User.query.filter_by(email=data['email']).first()
     if user:
-        # Placeholder: add real reset logic
         return jsonify({"success": True, "message": "Password reset not implemented"})
     return jsonify({"success": False, "message": "User not found"}), 404
 
