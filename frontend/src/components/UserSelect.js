@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { api } from '../api';
+import './UserSelect.css';
 
 function UserSelect({ setChatWith, setScreen }) {
   const [otherId, setOtherId] = useState('');
@@ -24,7 +25,7 @@ function UserSelect({ setChatWith, setScreen }) {
   };
 
   return (
-    <div>
+    <div className="user-select-container">
       <h2>Start Chat</h2>
       <input placeholder="Enter email of user to chat" onChange={e => setOtherId(e.target.value)} />
       <button onClick={handleStartChat}>Chat</button>

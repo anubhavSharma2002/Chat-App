@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
+import './ChatBox.css';
 
 const socket = io('https://chat-app-4apm.onrender.com', {
   transports: ['websocket'],
@@ -36,26 +37,24 @@ function ChatBox({ userId, chatWith, setScreen }) {
   };
 
   return (
-    <div>
-      <h3>Chat with: {chatWith}</h3>
-      <div style={{ border: '1px solid #ccc', height: '250px', overflowY: 'scroll', marginBottom: 10 }}>
+    <div className="chatbox-container">
+      <div className="chatbox-header">Chat with: {chatWith}</div>
+      <div className="chatbox-messages">
         {messages.map((msg, idx) => (
-          <div key={idx}>
+          <div key={idx} className="chatbox-message">
             <b>{msg.sender}:</b> {msg.message}
-            <small style={{ marginLeft: 10, color: 'gray' }}>
-              {new Date(msg.timestamp).toLocaleString()}
-            </small>
+            <small>{new Date(msg.timestamp).toLocaleString()}</small>
           </div>
         ))}
       </div>
       <input
+        className="chatbox-input"
         value={message}
         onChange={e => setMessage(e.target.value)}
         placeholder="Type a message"
-        style={{ width: '80%' }}
       />
-      <button onClick={sendMessage}>Send</button>
-      <button onClick={() => setScreen('select')}>Back</button>
+      <button className="chatbox-button" onClick={sendMessage}>Send</button>
+      <button className="chatbox-button" onClick={() => setScreen('select')}>Back</button>
     </div>
   );
 }

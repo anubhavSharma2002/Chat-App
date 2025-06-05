@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { api } from '../api';
+import './ForgotPassword.css';
 
 function ForgotPassword({ setScreen }) {
   const [email, setEmail] = useState('');
@@ -14,7 +15,7 @@ function ForgotPassword({ setScreen }) {
   };
 
   return (
-    <div>
+    <div className="forgot-password-container">
       <h2>Forgot Password</h2>
       <input placeholder="Email" onChange={e => setEmail(e.target.value)} />
       <button onClick={handleReset}>Reset Password</button>

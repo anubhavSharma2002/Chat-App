@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { api } from '../api';
+import './Login.css';
 
 function Login({ setScreen, setUserId }) {
   const [email, setEmail] = useState('');
@@ -17,7 +18,7 @@ function Login({ setScreen, setUserId }) {
   };
 
   return (
-    <div>
+    <div className="login-container">
       <h2>Login</h2>
       <input placeholder="Email" onChange={e => setEmail(e.target.value)} />
       <input type="password" placeholder="Password" onChange={e => setPassword(e.target.value)} />

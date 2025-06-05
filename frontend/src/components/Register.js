@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { api } from '../api';
+import './Register.css';
 
 function Register({ setScreen }) {
   const [email, setEmail] = useState('');
@@ -16,7 +17,7 @@ function Register({ setScreen }) {
   };
 
   return (
-    <div>
+    <div className="register-container">
       <h2>Register</h2>
       <input placeholder="Email" onChange={e => setEmail(e.target.value)} />
       <input type="password" placeholder="Password" onChange={e => setPassword(e.target.value)} />
