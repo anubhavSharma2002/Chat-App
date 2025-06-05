@@ -15,24 +15,17 @@ function Register({ setScreen }) {
     }
   };
 
+  const handleKey = (e) => {
+    if (e.key === 'Enter') handleRegister();
+  };
+
   return (
-    <div className="fade-in">
-      <h2>Create Account</h2>
-      <input
-        placeholder="Email"
-        value={email}
-        onChange={e => setEmail(e.target.value)}
-        onKeyDown={e => e.key === 'Enter' && handleRegister()}
-      />
-      <input
-        placeholder="Password"
-        type="password"
-        value={password}
-        onChange={e => setPassword(e.target.value)}
-        onKeyDown={e => e.key === 'Enter' && handleRegister()}
-      />
+    <div className="form-container">
+      <h2>Register</h2>
+      <input placeholder="Email" onChange={e => setEmail(e.target.value)} onKeyDown={handleKey} />
+      <input type="password" placeholder="Password" onChange={e => setPassword(e.target.value)} onKeyDown={handleKey} />
       <button onClick={handleRegister}>Register</button>
-      <button onClick={() => setScreen('login')}>Back to Login</button>
+      <button onClick={() => setScreen('login')}>Go to Login</button>
     </div>
   );
 }

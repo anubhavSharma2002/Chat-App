@@ -18,19 +18,22 @@ function UserSelect({ setChatWith, setScreen }) {
     }
   };
 
+  const handleKey = (e) => {
+    if (e.key === 'Enter') handleStartChat();
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('userId');
     setScreen('login');
   };
 
   return (
-    <div className="fade-in">
+    <div className="form-container">
       <h2>Start Chat</h2>
       <input
         placeholder="Enter email of user to chat"
-        value={otherId}
         onChange={e => setOtherId(e.target.value)}
-        onKeyDown={e => e.key === 'Enter' && handleStartChat()}
+        onKeyDown={handleKey}
       />
       <button onClick={handleStartChat}>Chat</button>
       <button onClick={handleLogout}>Logout</button>

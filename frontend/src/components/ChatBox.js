@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { io } from 'socket.io-client';
 
 const socket = io('https://chat-app-4apm.onrender.com', {
@@ -9,6 +9,7 @@ const socket = io('https://chat-app-4apm.onrender.com', {
 function ChatBox({ userId, chatWith, setScreen }) {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
+  const bottomRef = useRef(null);
 
   useEffect(() => {
     socket.emit('join', { user: userId, other_user: chatWith });
@@ -24,40 +25,47 @@ function ChatBox({ userId, chatWith, setScreen }) {
     return () => socket.off();
   }, [userId, chatWith]);
 
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
   const sendMessage = () => {
     if (message.trim()) {
-      socket.emit('send_message', {
+      const msgData = {
         sender: userId,
         receiver: chatWith,
         message
-      });
+      };
+      socket.emit('send_message', msgData);
+      setMessages(prev => [...prev, { ...msgData, timestamp: new Date() }]);
       setMessage('');
     }
   };
 
+  const handleKey = (e) => {
+    if (e.key === 'Enter') sendMessage();
+  };
+
   return (
-    <div className="fade-in chat-screen">
-      <h2>Chat with: {chatWith}</h2>
-      <div className="chat-container">
+    <div className="chat-container">
+      <h3>Chat with: {chatWith}</h3>
+      <div className="chat-box">
         {messages.map((msg, idx) => (
           <div
             key={idx}
-            className={`message-box ${msg.sender === userId ? 'sent' : 'received'}`}
+            className={`message ${msg.sender === userId ? 'sent' : 'received'}`}
           >
-            <div className="message-text">
-              <strong>{msg.sender === userId ? 'You' : msg.sender}:</strong> {msg.message}
-            </div>
-            <div className="timestamp">
-              {new Date(msg.timestamp).toLocaleString()}
-            </div>
+            <div>{msg.message}</div>
+            <small>{new Date(msg.timestamp).toLocaleTimeString()}</small>
           </div>
         ))}
+        <div ref={bottomRef}></div>
       </div>
       <div className="input-area">
         <input
           value={message}
           onChange={e => setMessage(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && sendMessage()}
+          onKeyDown={handleKey}
           placeholder="Type a message"
         />
         <button onClick={sendMessage}>Send</button>
