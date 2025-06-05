@@ -1,87 +1,125 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { io } from 'socket.io-client';
+import React, { useState, useEffect, useRef } from 'react';
+import './ChatBox.css';
 
-const socket = io('https://chat-app-4apm.onrender.com', {
-  transports: ['websocket'],
-  withCredentials: true,
-});
-
-function ChatBox({ userId, chatWith, setScreen }) {
+function ChatBox({ userId, chatWith, socket }) {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
-  const bottomRef = useRef(null);
+  const [emojiSuggestion, setEmojiSuggestion] = useState('');
+  const fileInputRef = useRef();
 
   useEffect(() => {
-    socket.emit('join', { user: userId, other_user: chatWith });
-
-    socket.on('chat_history', (msgs) => {
-      setMessages(msgs);
+    socket.on('receive_message', (data) => {
+      if (
+        (data.from === chatWith && data.to === userId) ||
+        (data.from === userId && data.to === chatWith)
+      ) {
+        setMessages((msgs) => [...msgs, data]);
+      }
     });
 
-    socket.on('receive_message', (msg) => {
-      setMessages(prev => {
-        // Deduplicate just in case by timestamp + sender + message
-        const exists = prev.some(
-          m =>
-            m.timestamp === msg.timestamp &&
-            m.sender === msg.sender &&
-            m.message === msg.message
-        );
-        if (exists) return prev;
-        return [...prev, msg];
-      });
-    });
+    return () => socket.off('receive_message');
+  }, [socket, userId, chatWith]);
 
-    return () => socket.off('chat_history').off('receive_message');
-  }, [userId, chatWith]);
-
+  // Fetch emoji suggestion
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  const sendMessage = () => {
-    if (message.trim()) {
-      const msgData = {
-        sender: userId,
-        receiver: chatWith,
-        message
-      };
-      socket.emit('send_message', msgData);
-
-      // Add message locally with current time
-      setMessages(prev => [...prev, { ...msgData, timestamp: new Date().toISOString() }]);
-      setMessage('');
+    if (message.trim() === '') {
+      setEmojiSuggestion('');
+      return;
     }
+
+    const fetchEmoji = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/emoji_suggestion', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: message }),
+        });
+        const data = await res.json();
+        setEmojiSuggestion(data.emoji || '');
+      } catch {
+        setEmojiSuggestion('');
+      }
+    };
+
+    fetchEmoji();
+  }, [message]);
+
+  const sendMessage = (type = 'text', content = null) => {
+    if ((type === 'text' && message.trim() === '') || !chatWith) return;
+
+    let msgContent = content;
+    if (type === 'text') msgContent = message;
+
+    const data = {
+      from: userId,
+      to: chatWith,
+      type,
+      content: msgContent,
+    };
+
+    socket.emit('send_message', data);
+    setMessages((msgs) => [...msgs, data]);
+
+    if (type === 'text') setMessage('');
+    setEmojiSuggestion('');
   };
 
-  const handleKey = (e) => {
-    if (e.key === 'Enter') sendMessage();
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      sendMessage(file.type.startsWith('image/') ? 'image' : 'video', reader.result);
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
-    <div className="chat-container">
-      <h3>Chat with: {chatWith}</h3>
-      <div className="chat-box">
-        {messages.map((msg, idx) => (
-          <div
-            key={`${msg.timestamp}-${msg.sender}-${idx}`}
-            className={`message ${msg.sender === userId ? 'sent' : 'received'}`}
-          >
-            <div>{msg.message}</div>
-            <small>{new Date(new Date(msg.timestamp).getTime() + (5.5 * 60 * 60 * 1000)).toLocaleTimeString('en-IN')}</small>
+    <div className="chatbox-container">
+      <div className="messages">
+        {messages.map((m, idx) => (
+          <div key={idx} className={m.from === userId ? 'message sent' : 'message received'}>
+            {m.type === 'text' && <span>{m.content}</span>}
+            {m.type === 'image' && <img src={m.content} alt="sent-img" />}
+            {m.type === 'video' && (
+              <video controls width="200">
+                <source src={m.content} />
+              </video>
+            )}
           </div>
         ))}
-        <div ref={bottomRef}></div>
       </div>
+
       <div className="input-area">
         <input
+          type="text"
+          placeholder="Type your message..."
           value={message}
-          onChange={e => setMessage(e.target.value)}
-          onKeyDown={handleKey}
-          placeholder="Type a message"
+          onChange={(e) => setMessage(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') sendMessage();
+          }}
         />
-        <button onClick={sendMessage}>Send</button>
-        <button onClick={() => setScreen('select')}>Back</button>
+        {emojiSuggestion && (
+          <button
+            className="emoji-suggestion"
+            onClick={() => setMessage((m) => m + emojiSuggestion)}
+            title="Add emoji"
+          >
+            {emojiSuggestion}
+          </button>
+        )}
+
+        <button onClick={() => fileInputRef.current.click()}>📎</button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*,video/*"
+          style={{ display: 'none' }}
+          onChange={handleFileChange}
+        />
+        <button onClick={() => sendMessage()}>Send</button>
       </div>
     </div>
   );
