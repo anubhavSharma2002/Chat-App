@@ -1,49 +1,35 @@
-from flask import Blueprint, request, jsonify
-from models import db, User
+from flask import Blueprint, request, jsonify, current_app
 from werkzeug.security import generate_password_hash, check_password_hash
+from models import db, User
+from flask_cors import cross_origin
 
 auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/register', methods=['POST'])
+@cross_origin(supports_credentials=True)
 def register():
-    data = request.get_json()
-    email = data.get('email')
-    password = data.get('password')
+    data = request.json
+    if not data or not data.get('username') or not data.get('password'):
+        return jsonify({'message': 'Invalid input'}), 400
 
-    if not email or not password:
-        return jsonify({"success": False, "message": "Email and password required"}), 400
+    if User.query.filter_by(username=data['username']).first():
+        return jsonify({'message': 'User already exists'}), 400
 
-    if User.query.filter_by(email=email).first():
-        return jsonify({"success": False, "message": "User already exists"}), 400
-
-    password_hash = generate_password_hash(password)
-    new_user = User(email=email, password_hash=password_hash)
+    hashed_password = generate_password_hash(data['password'], method='sha256')
+    new_user = User(username=data['username'], password=hashed_password)
     db.session.add(new_user)
     db.session.commit()
-    return jsonify({"success": True, "message": "Registered successfully"})
+    return jsonify({'message': 'User registered successfully'}), 201
 
 @auth_bp.route('/login', methods=['POST'])
+@cross_origin(supports_credentials=True)
 def login():
-    data = request.get_json()
-    email = data.get('email')
-    password = data.get('password')
+    data = request.json
+    if not data or not data.get('username') or not data.get('password'):
+        return jsonify({'message': 'Invalid input'}), 400
 
-    user = User.query.filter_by(email=email).first()
-    if user and check_password_hash(user.password_hash, password):
-        return jsonify({"success": True, "user_id": user.email})
-    return jsonify({"success": False, "message": "Invalid credentials"}), 401
+    user = User.query.filter_by(username=data['username']).first()
+    if not user or not check_password_hash(user.password, data['password']):
+        return jsonify({'message': 'Invalid credentials'}), 401
 
-@auth_bp.route('/forgot-password', methods=['POST'])
-def forgot_password():
-    data = request.get_json()
-    user = User.query.filter_by(email=data['email']).first()
-    if user:
-        # Placeholder: add real reset logic
-        return jsonify({"success": True, "message": "Password reset not implemented"})
-    return jsonify({"success": False, "message": "User not found"}), 404
-
-@auth_bp.route('/check-user', methods=['POST'])
-def check_user():
-    data = request.get_json()
-    user = User.query.filter_by(email=data['email']).first()
-    return jsonify({"exists": bool(user)})
+    return jsonify({'message': 'Login successful', 'user_id': user.id}), 200

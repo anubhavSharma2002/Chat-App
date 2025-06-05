@@ -1,30 +1,36 @@
+import os
 from flask import Flask
 from flask_cors import CORS
-from flask_sqlalchemy import SQLAlchemy
 from flask_socketio import SocketIO
-import os
+from models import db  # Import unbound db
+from auth import auth_bp  # Blueprint
+from werkzeug.utils import secure_filename
 
-# Create Flask app
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your-secret-key'  # Replace with a strong key in production
+app.config['SECRET_KEY'] = 'your-secret-key'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chat.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['UPLOAD_FOLDER'] = os.path.join(os.getcwd(), 'uploads')
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-# Enable CORS for your frontend domain (update with your Vercel domain if changed)
-CORS(app, origins=["https://baatkarona.vercel.app"], supports_credentials=True)
-
-# Initialize DB and SocketIO
-db = SQLAlchemy(app)
+CORS(app, supports_credentials=True, origins=["https://baatkarona.vercel.app"])
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-# Import and register blueprints
-from auth import auth_bp
+# ✅ Correctly initialize SQLAlchemy
+db.init_app(app)
+
+# ✅ Register blueprints
 app.register_blueprint(auth_bp, url_prefix='/auth')
 
-# Create DB tables at app startup
+# ✅ Create tables inside app context
 with app.app_context():
     db.create_all()
 
-# Run the app on the correct host and port for Render.com
+@app.route('/')
+def index():
+    return "Chat App Backend Running"
+
+# ✅ Run using PORT for Render deployment
 if __name__ == '__main__':
-    socketio.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
+    port = int(os.environ.get("PORT", 5000))
+    socketio.run(app, host='0.0.0.0', port=port)
