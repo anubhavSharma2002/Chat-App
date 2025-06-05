@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 import Login from './components/Login';
 import Register from './components/Register';
@@ -11,9 +11,25 @@ function App() {
   const [userId, setUserId] = useState('');
   const [chatWith, setChatWith] = useState('');
 
+  useEffect(() => {
+    const savedUserId = localStorage.getItem('userId');
+    if (savedUserId) {
+      setUserId(savedUserId);
+      setScreen('userselect');
+    }
+  }, []);
+
   const handleLogin = (id) => {
     setUserId(id);
+    localStorage.setItem('userId', id);
     setScreen('userselect');
+  };
+
+  const handleLogout = () => {
+    setUserId('');
+    setChatWith('');
+    localStorage.removeItem('userId');
+    setScreen('login');
   };
 
   const handleChatStart = (partnerId) => {
@@ -31,15 +47,21 @@ function App() {
         />
       )}
       {screen === 'register' && (
-        <Register onLogin={() => setScreen('login')} />
+        <Register
+          onLogin={() => setScreen('login')}
+        />
       )}
       {screen === 'forgot' && (
-        <ForgotPassword onBack={() => setScreen('login')} />
+        <ForgotPassword
+          onBack={() => setScreen('login')}
+        />
       )}
       {screen === 'userselect' && (
         <UserSelect
+          userId={userId}
           setChatWith={handleChatStart}
           setScreen={setScreen}
+          onLogout={handleLogout}
         />
       )}
       {screen === 'chat' && (

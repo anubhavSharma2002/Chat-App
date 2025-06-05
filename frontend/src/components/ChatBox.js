@@ -13,24 +13,21 @@ function ChatBox({ sender, receiver, onBack }) {
   useEffect(() => {
     socket.emit('join', { sender, receiver });
 
-    const fetchOldMessages = async () => {
+    const fetchMessages = async () => {
       try {
         const res = await fetch(`https://chat-app-4apm.onrender.com/messages/${sender}/${receiver}`);
         const data = await res.json();
-        // Convert image_url to full path
-        const updated = data.map(msg => ({
+        const formatted = data.map(msg => ({
           ...msg,
-          image_url: msg.image_url
-            ? `https://chat-app-4apm.onrender.com${msg.image_url}`
-            : ''
+          image_url: msg.image_url ? `https://chat-app-4apm.onrender.com${msg.image_url}` : ''
         }));
-        setMessages(updated);
+        setMessages(formatted);
       } catch (err) {
-        console.error('Failed to fetch messages:', err);
+        console.error('Failed to load messages:', err);
       }
     };
 
-    fetchOldMessages();
+    fetchMessages();
 
     socket.on('receive_message', (data) => {
       if (data.image_url) {
@@ -51,7 +48,6 @@ function ChatBox({ sender, receiver, onBack }) {
     if (image) {
       const formData = new FormData();
       formData.append('file', image);
-
       try {
         const res = await fetch('https://chat-app-4apm.onrender.com/upload', {
           method: 'POST',
@@ -59,13 +55,13 @@ function ChatBox({ sender, receiver, onBack }) {
         });
         const data = await res.json();
         if (data.url) {
-          image_url = data.url; // Save just relative path
+          image_url = data.url;
         } else {
-          console.error('Image upload failed:', data.error);
+          alert('Image upload failed');
           return;
         }
       } catch (err) {
-        console.error('Upload failed', err);
+        console.error('Image upload error:', err);
         return;
       }
     }
@@ -88,9 +84,20 @@ function ChatBox({ sender, receiver, onBack }) {
       },
     ]);
 
+    saveChatHistory(receiver);
+
     setMessage('');
     setImage(null);
     setPreviewUrl(null);
+  };
+
+  const saveChatHistory = (partnerId) => {
+    const historyKey = `${sender}_chatHistory`;
+    const existing = JSON.parse(localStorage.getItem(historyKey)) || [];
+    if (!existing.includes(partnerId)) {
+      const updated = [...existing, partnerId];
+      localStorage.setItem(historyKey, JSON.stringify(updated));
+    }
   };
 
   const handleKeyDown = (e) => {
@@ -99,11 +106,9 @@ function ChatBox({ sender, receiver, onBack }) {
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
-    setImage(file);
     if (file) {
+      setImage(file);
       setPreviewUrl(URL.createObjectURL(file));
-    } else {
-      setPreviewUrl(null);
     }
   };
 
@@ -115,8 +120,8 @@ function ChatBox({ sender, receiver, onBack }) {
       </div>
 
       <div className="chat-messages">
-        {messages.map((msg, idx) => (
-          <div key={idx} className={`message ${msg.sender === sender ? 'sent' : 'received'}`}>
+        {messages.map((msg, index) => (
+          <div key={index} className={`message ${msg.sender === sender ? 'sent' : 'received'}`}>
             {msg.message && <p>{msg.message}</p>}
             {msg.image_url && (
               <img
@@ -125,13 +130,11 @@ function ChatBox({ sender, receiver, onBack }) {
                 className="chat-image"
                 onError={(e) => {
                   e.target.onerror = null;
-                  e.target.src = '/broken-image-icon.png'; // optional fallback
+                  e.target.src = '/broken-image.png';
                 }}
               />
             )}
-            <span className="timestamp">
-              {new Date(msg.timestamp).toLocaleTimeString()}
-            </span>
+            <span className="timestamp">{new Date(msg.timestamp).toLocaleTimeString()}</span>
           </div>
         ))}
       </div>
@@ -139,16 +142,12 @@ function ChatBox({ sender, receiver, onBack }) {
       <div className="chat-input">
         <input
           type="text"
+          placeholder="Type a message..."
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Type a message..."
         />
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleImageChange}
-        />
+        <input type="file" accept="image/*" onChange={handleImageChange} />
         {previewUrl && (
           <div className="image-preview">
             <img src={previewUrl} alt="Preview" className="preview-img" />
