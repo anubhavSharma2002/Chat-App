@@ -47,7 +47,12 @@ function ChatBox({ sender, receiver, onBack }) {
           body: formData,
         });
         const data = await res.json();
-        image_url = data.url;
+        if (data.url) {
+          image_url = `https://chat-app-4apm.onrender.com${data.url}`;
+        } else {
+          console.error('Image upload failed:', data.error);
+          return;
+        }
       } catch (err) {
         console.error('Upload failed', err);
         return;
@@ -86,6 +91,10 @@ function ChatBox({ sender, receiver, onBack }) {
                 src={msg.image_url}
                 alt="shared"
                 className="chat-image"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = '/broken-image-icon.png'; // fallback if image fails
+                }}
               />
             )}
             <span className="timestamp">{new Date(msg.timestamp).toLocaleTimeString()}</span>
