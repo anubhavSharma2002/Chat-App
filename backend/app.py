@@ -1,3 +1,4 @@
+from flask import Flask
 from flask import Flask, request, jsonify, send_from_directory
 from flask_socketio import SocketIO, emit, join_room
 from flask_sqlalchemy import SQLAlchemy
@@ -14,7 +15,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chat.db'
 app.config['UPLOAD_FOLDER'] = 'uploads'
 CORS(app, supports_credentials=True, resources={
     r"/*": {
-        "origins": ["https://baatkarona.vercel.app"],
+        "origins": ["https://baatkarona.vercel.app/"],
         "methods": ["GET", "POST", "OPTIONS", "PUT", "DELETE"],
         "allow_headers": ["Content-Type", "Authorization", "Access-Control-Allow-Credentials"],
         "supports_credentials": True

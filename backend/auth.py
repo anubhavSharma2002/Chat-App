@@ -1,8 +1,19 @@
 from flask import Blueprint, request, jsonify
 from models import db, User
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask import make_response
 
 auth_bp = Blueprint('auth', __name__)
+
+@auth_bp.route('/register', methods=['OPTIONS'])
+def register_options():
+    response = make_response()
+    response.headers.add("Access-Control-Allow-Origin", "https://baatkarona.vercel.app")
+    response.headers.add("Access-Control-Allow-Methods", "POST, OPTIONS")
+    response.headers.add("Access-Control-Allow-Headers", "Content-Type, Authorization")
+    response.headers.add("Access-Control-Allow-Credentials", "true")
+    return response
+
 
 @auth_bp.route('/register', methods=['POST'])
 def register():
