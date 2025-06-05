@@ -1,4 +1,3 @@
-// frontend/src/components/ChatBox.js
 import React, { useEffect, useState } from 'react';
 import io from 'socket.io-client';
 import './ChatBox.css';
@@ -84,7 +83,7 @@ function ChatBox({ sender, receiver, onBack }) {
             {msg.message && <p>{msg.message}</p>}
             {msg.image_url && (
               <img
-                src={`https://chat-app-4apm.onrender.com${msg.image_url}`}
+                src={msg.image_url}
                 alt="shared"
                 className="chat-image"
               />

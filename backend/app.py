@@ -4,7 +4,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 import os
-from models import db, Message  # Assuming Message model has image_url and timestamp
+import time
+from models import db, Message  # Message model includes sender, receiver, message, image_url, timestamp
 from auth import auth_bp
 import eventlet
 
@@ -15,7 +16,10 @@ app.config['SECRET_KEY'] = 'secret!'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chat.db'
 app.config['UPLOAD_FOLDER'] = 'uploads'
 
-# Enable CORS for your frontend domain with credentials support
+# Ensure uploads folder exists
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+# Enable CORS
 CORS(app, supports_credentials=True, resources={
     r"/*": {
         "origins": ["https://baatkarona.vercel.app"],
@@ -26,11 +30,6 @@ CORS(app, supports_credentials=True, resources={
 })
 
 socketio = SocketIO(app, cors_allowed_origins=["https://baatkarona.vercel.app"])
-
-db.init_app(app)
-
-# Ensure uploads directory exists
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
@@ -51,10 +50,11 @@ def upload_file():
         return jsonify({'error': 'No selected file'}), 400
 
     if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        # To avoid overwriting, you may want to add a unique prefix here, e.g. timestamp
+        timestamp = int(time.time())
+        filename = f"{timestamp}_{secure_filename(file.filename)}"
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        return jsonify({'url': f'/uploads/{filename}'}), 200
+        full_url = f"https://chat-app-4apm.onrender.com/uploads/{filename}"
+        return jsonify({'url': full_url}), 200
 
     return jsonify({'error': 'Invalid file type'}), 400
 
@@ -93,7 +93,6 @@ def reset_db():
 
 @app.route('/messages/<sender>/<receiver>', methods=['GET'])
 def get_messages(sender, receiver):
-    room1 = get_room_name(sender, receiver)
     messages = Message.query.filter(
         ((Message.sender == sender) & (Message.receiver == receiver)) |
         ((Message.sender == receiver) & (Message.receiver == sender))
@@ -109,7 +108,7 @@ def get_messages(sender, receiver):
         } for msg in messages
     ])
 
-# Register the auth blueprint at /auth
+# Register auth blueprint
 app.register_blueprint(auth_bp, url_prefix='/auth')
 
 if __name__ == '__main__':
