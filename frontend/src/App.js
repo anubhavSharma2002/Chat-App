@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
-import Login from "./Login";
-import Register from "./Register";
-import ForgotPassword from "./ForgotPassword";
-import UserSelect from "./UserSelect";
-import ChatBox from "./ChatBox";
-import "./App.css";
+import React, { useState, useEffect } from 'react';
+import Login from './components/Login';
+import Register from './components/Register';
+import ForgotPassword from './components/ForgotPassword';
+import UserSelect from './components/UserSelect';
+import ChatBox from './components/ChatBox';
+import './App.css';
 
 function App() {
   const [screen, setScreen] = useState("login");
