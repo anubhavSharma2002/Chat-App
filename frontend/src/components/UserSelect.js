@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './UserSelect.css';
 
-function UserSelect({ userId, onSelect }) {
+function UserSelect({ userId, onSelect, logout }) {
   const [chatWith, setChatWith] = useState('');
   const [savedUsers, setSavedUsers] = useState([]);
 
@@ -23,6 +23,7 @@ function UserSelect({ userId, onSelect }) {
   return (
     <div className="user-select-container">
       <h2>Select User to Chat With</h2>
+
       <input
         type="text"
         placeholder="Enter User ID"
@@ -54,6 +55,11 @@ function UserSelect({ userId, onSelect }) {
           </ul>
         </div>
       )}
+
+      {/* Logout Button */}
+      <button className="logout-btn" onClick={logout}>
+        Logout
+      </button>
     </div>
   );
 }

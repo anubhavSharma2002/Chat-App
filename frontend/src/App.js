@@ -7,7 +7,7 @@ import ChatBox from './components/ChatBox';
 import './App.css';
 
 function App() {
-  const [screen, setScreen] = useState("loading"); // Start with loading screen
+  const [screen, setScreen] = useState("loading");
   const [userId, setUserId] = useState(null);
   const [chatUserId, setChatUserId] = useState(null);
 
@@ -20,6 +20,12 @@ function App() {
       setScreen("login");
     }
   }, []);
+
+  const logout = () => {
+    localStorage.removeItem("userId");
+    setUserId(null);
+    setScreen("login");
+  };
 
   const renderScreen = () => {
     switch (screen) {
@@ -35,6 +41,7 @@ function App() {
             setScreen={setScreen}
             userId={userId}
             setChatUserId={setChatUserId}
+            logout={logout}
           />
         );
       case "chat":
@@ -43,9 +50,9 @@ function App() {
             setScreen={setScreen}
             userId={userId}
             chatUserId={chatUserId}
+            logout={logout}
           />
         );
-      case "loading":
       default:
         return <div className="loader">Loading...</div>;
     }
