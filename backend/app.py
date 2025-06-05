@@ -85,6 +85,12 @@ def handle_message(data):
         'timestamp': new_msg.timestamp.isoformat()
     }, to=room, broadcast=True, include_self=False)
 
+@app.route('/reset-db')
+def reset_db():
+    db.drop_all()
+    db.create_all()
+    return "Database reset successfully"
+
 # Register the auth blueprint at /auth
 app.register_blueprint(auth_bp, url_prefix='/auth')
 
