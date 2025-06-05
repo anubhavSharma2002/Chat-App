@@ -5,33 +5,29 @@ import eventlet
 eventlet.monkey_patch()
 
 from flask import Flask, request, jsonify
-from flask_socketio import SocketIO, emit, join_room
+from flask_socketio import SocketIO, emit
 from flask_cors import CORS
 from models import db, Message, User
 from auth import auth_bp
 
+# Initialize Flask app
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
 
-# Configuration for SQLite and SQLAlchemy
+# Config
 app.config['SECRET_KEY'] = 'your_secret_key_here'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chat.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Initialize DB and register auth blueprint
+# Initialize DB, SocketIO, and Blueprint
 db.init_app(app)
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 app.register_blueprint(auth_bp)
 
-# Initialize SocketIO with async_mode set for eventlet
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
-
-# Store online users
+# In-memory user tracking
 online_users = {}
 
-@app.before_first_request
-def create_tables():
-    db.create_all()
-
+# SocketIO Events
 @socketio.on('connect')
 def handle_connect():
     print("Client connected")
@@ -64,7 +60,6 @@ def handle_send_message(data):
     db.session.add(new_message)
     db.session.commit()
 
-    # Check if receiver is online
     receiver_sid = online_users.get(receiver_id)
     if receiver_sid:
         emit('receive_message', {
@@ -75,15 +70,15 @@ def handle_send_message(data):
     else:
         print(f"User {receiver_id} is offline. Message stored.")
 
-# Required to allow health check from Render
+# Health check endpoint
 @app.route('/')
 def index():
     return "Chat server is running."
 
-# -------------------------
-# DEPLOYMENT-READY ENTRYPOINT
-# -------------------------
-
+# Entrypoint
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))  # Render sets PORT dynamically
+    with app.app_context():
+        db.create_all()
+
+    port = int(os.environ.get("PORT", 5000))
     socketio.run(app, host='0.0.0.0', port=port)
