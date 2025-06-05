@@ -12,7 +12,7 @@ from auth import auth_bp
 
 # Initialize Flask app
 app = Flask(__name__)
-CORS(app, supports_credentials=True)
+CORS(app, origins=["https://baatkarona.vercel.app"], supports_credentials=True, methods=["GET", "POST", "OPTIONS"], allow_headers=["Content-Type", "Authorization"])
 
 # Config
 app.config['SECRET_KEY'] = 'your_secret_key_here'
