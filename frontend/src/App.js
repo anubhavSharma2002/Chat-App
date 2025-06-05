@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import './App.css';
 import Login from './components/Login';
 import Register from './components/Register';
-import ForgotPassword from './components/Forgotpassword';
+import ForgotPassword from './components/ForgotPassword';
 import UserSelect from './components/UserSelect';
 import ChatBox from './components/ChatBox';
 
