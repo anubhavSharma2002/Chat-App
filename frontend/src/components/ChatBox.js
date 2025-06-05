@@ -37,13 +37,16 @@ function ChatBox({ userId, chatWith, setScreen }) {
         message
       };
       socket.emit('send_message', msgData);
-      setMessages(prev => [...prev, { ...msgData, timestamp: new Date() }]);
+      // Removed local addition of message here to prevent duplication
       setMessage('');
     }
   };
 
   const handleKey = (e) => {
-    if (e.key === 'Enter') sendMessage();
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      sendMessage();
+    }
   };
 
   return (
@@ -52,7 +55,7 @@ function ChatBox({ userId, chatWith, setScreen }) {
       <div className="chat-box">
         {messages.map((msg, idx) => (
           <div
-            key={idx}
+            key={msg.timestamp ? msg.timestamp : idx}  // Better unique key, fallback to idx
             className={`message ${msg.sender === userId ? 'sent' : 'received'}`}
           >
             <div>{msg.message}</div>
