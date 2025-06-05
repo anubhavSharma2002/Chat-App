@@ -10,14 +10,12 @@ app.config['SECRET_KEY'] = 'secret!'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/chat.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# CORS for cookies/session support
 CORS(app, supports_credentials=True)
 
 db.init_app(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
 app.register_blueprint(auth_bp, url_prefix='/auth')
 
-# Room naming convention
 def get_room_name(user1, user2):
     return "_".join(sorted([user1, user2]))
 
@@ -47,11 +45,12 @@ def handle_message(data):
     db.session.add(new_msg)
     db.session.commit()
 
+    # Emit to all in room EXCEPT sender to avoid duplicate on sender side
     emit('receive_message', {
         'sender': sender,
         'message': message,
         'timestamp': new_msg.timestamp.isoformat()
-    }, to=room)
+    }, to=room, broadcast=True, include_self=False)
 
 if __name__ == '__main__':
     with app.app_context():

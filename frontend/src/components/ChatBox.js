@@ -19,10 +19,20 @@ function ChatBox({ userId, chatWith, setScreen }) {
     });
 
     socket.on('receive_message', (msg) => {
-      setMessages(prev => [...prev, msg]);
+      setMessages(prev => {
+        // Deduplicate just in case by timestamp + sender + message
+        const exists = prev.some(
+          m =>
+            m.timestamp === msg.timestamp &&
+            m.sender === msg.sender &&
+            m.message === msg.message
+        );
+        if (exists) return prev;
+        return [...prev, msg];
+      });
     });
 
-    return () => socket.off();
+    return () => socket.off('chat_history').off('receive_message');
   }, [userId, chatWith]);
 
   useEffect(() => {
@@ -37,16 +47,15 @@ function ChatBox({ userId, chatWith, setScreen }) {
         message
       };
       socket.emit('send_message', msgData);
-      // Removed local addition of message here to prevent duplication
+
+      // Add message locally with current time
+      setMessages(prev => [...prev, { ...msgData, timestamp: new Date().toISOString() }]);
       setMessage('');
     }
   };
 
   const handleKey = (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      sendMessage();
-    }
+    if (e.key === 'Enter') sendMessage();
   };
 
   return (
@@ -55,7 +64,7 @@ function ChatBox({ userId, chatWith, setScreen }) {
       <div className="chat-box">
         {messages.map((msg, idx) => (
           <div
-            key={msg.timestamp ? msg.timestamp : idx}  // Better unique key, fallback to idx
+            key={`${msg.timestamp}-${msg.sender}-${idx}`}
             className={`message ${msg.sender === userId ? 'sent' : 'received'}`}
           >
             <div>{msg.message}</div>
