@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-function Register({ goToLogin }) {
+function Register({ onRegisterSuccess }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
@@ -14,35 +14,34 @@ function Register({ goToLogin }) {
         { withCredentials: true }
       );
       alert(res.data.message);
-      goToLogin();
+      onRegisterSuccess(); // Switch to login screen
     } catch (err) {
       console.error("Register Error:", err);
-      if (err.response) {
-        alert(err.response.data.message || "Registration failed");
-      } else {
-        alert("Network error or server down");
-      }
+      alert(err.response?.data?.message || 'Registration failed');
     }
   };
 
   return (
-    <form onSubmit={onSubmit}>
+    <div>
       <h2>Register</h2>
-      <input
-        placeholder="Username"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        required
-      />
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-      />
-      <button type="submit">Register</button>
-    </form>
+      <form onSubmit={onSubmit}>
+        <input
+          type="text"
+          placeholder="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          required
+        /><br/>
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        /><br/>
+        <button type="submit">Register</button>
+      </form>
+    </div>
   );
 }
 
