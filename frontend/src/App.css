@@ -98,46 +98,12 @@ button:hover {
 
 .input-area {
   display: flex;
-  flex-wrap: wrap;
   gap: 10px;
   margin-top: 10px;
-  align-items: center;
-  justify-content: space-between;
 }
 
-.input-area input[type="text"] {
-  flex: 1 1 70%;
-  min-width: 200px;
-  padding: 12px;
-  border: 2px solid #9d50bb;
-  border-radius: 10px;
-  font-size: 16px;
-}
-
-.input-area .send-btn {
-  flex: 0 0 auto;
-  padding: 10px 16px;
-}
-
-.input-area .back-btn {
-  flex-basis: 100%;
-  text-align: center;
-}
-
-@media (max-width: 480px) {
-  .input-area input[type="text"] {
-    flex: 1 1 100%;
-  }
-
-  .input-area .send-btn {
-    flex: 1 1 45%;
-    padding: 10px;
-  }
-
-  .input-area .back-btn {
-    flex: 1 1 100%;
-    margin-top: 5px;
-  }
+.input-area input {
+  flex: 1;
 }
 
 .loader {

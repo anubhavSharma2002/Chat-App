@@ -8,9 +8,9 @@ function Login({ setScreen, setUserId }) {
   const handleLogin = async () => {
     try {
       const res = await api.post('/auth/login', { email, password });
-      localStorage.setItem("userId", res.data.userId);
-        setUserId(res.data.userId);
-        setScreen("userSelect");
+      localStorage.setItem('userId', res.data.user_id);
+      setUserId(res.data.user_id);
+      setScreen('select');
     } catch {
       alert('Login failed');
     }

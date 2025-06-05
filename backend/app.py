@@ -1,9 +1,8 @@
-from flask import Flask, request, jsonify
+from flask import Flask
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit, join_room
 from models import db, Message
 from auth import auth_bp
-from textblob import TextBlob
 import os
 
 app = Flask(__name__)
@@ -32,73 +31,26 @@ def handle_join(data):
         ((Message.sender == user2) & (Message.receiver == user1))
     ).order_by(Message.timestamp).all()
 
-    chat_history = []
-    for m in messages:
-        chat_history.append({
-            'sender': m.sender,
-            'message': m.message,
-            'timestamp': m.timestamp.isoformat(),
-            'media_type': getattr(m, 'media_type', None),
-            'media_url': getattr(m, 'media_url', None),
-        })
-
+    chat_history = [{'sender': m.sender, 'message': m.message, 'timestamp': m.timestamp.isoformat()} for m in messages]
     emit('chat_history', chat_history, to=room)
 
 @socketio.on('send_message')
 def handle_message(data):
     sender = data['sender']
     receiver = data['receiver']
-    message = data.get('message', None)
-    media_type = data.get('media_type', None)
-    media_url = data.get('media_url', None)
-
+    message = data['message']
     room = get_room_name(sender, receiver)
 
-    new_msg = Message(
-        sender=sender,
-        receiver=receiver,
-        message=message if message else '',
-    )
-
-    if media_type:
-        new_msg.media_type = media_type
-        new_msg.media_url = media_url
-
+    new_msg = Message(sender=sender, receiver=receiver, message=message)
     db.session.add(new_msg)
     db.session.commit()
 
+    # Emit to all in room EXCEPT sender to avoid duplicate on sender side
     emit('receive_message', {
         'sender': sender,
         'message': message,
-        'timestamp': new_msg.timestamp.isoformat(),
-        'media_type': media_type,
-        'media_url': media_url,
+        'timestamp': new_msg.timestamp.isoformat()
     }, to=room, broadcast=True, include_self=False)
-
-@app.route('/api/emoji_suggest', methods=['POST'])
-def emoji_suggest():
-    data = request.json
-    text = data.get('text', '')
-    if not text.strip():
-        return jsonify({'emojis': []})
-
-    polarity = TextBlob(text).sentiment.polarity
-
-    if polarity > 0.2:
-        label = 'POSITIVE'
-    elif polarity < -0.2:
-        label = 'NEGATIVE'
-    else:
-        label = 'NEUTRAL'
-
-    emoji_map = {
-        'POSITIVE': ['😊', '😄', '👍'],
-        'NEGATIVE': ['😞', '😠', '😢'],
-        'NEUTRAL': ['😐', '😶'],
-    }
-
-    emojis = emoji_map.get(label, ['🙂'])
-    return jsonify({'emojis': emojis})
 
 if __name__ == '__main__':
     with app.app_context():
