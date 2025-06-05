@@ -1,36 +1,37 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+import React, { useState } from "react";
+import axios from "axios";
 
 const Register = ({ onRegisterSuccess }) => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
 
-  const handleRegister = async (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
+    setErrorMsg("");
+
     try {
       const response = await axios.post(
-        'https://chat-app-4apm.onrender.com/auth/register',
+        "https://chat-app-4apm.onrender.com/auth/register",
         { username, password },
-        {
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          withCredentials: true
-        }
+        { withCredentials: true }
       );
 
       if (response.status === 201) {
-        onRegisterSuccess(); // Move to login or chat
+        onRegisterSuccess();
       }
-    } catch (err) {
-      console.error('Register Error:', err.response?.data || err.message);
-      setError(err.response?.data?.message || 'Registration failed');
+    } catch (error) {
+      console.error("Register Error:", error);
+      if (error.response && error.response.data && error.response.data.message) {
+        setErrorMsg(error.response.data.message);
+      } else {
+        setErrorMsg("Registration failed. Please try again.");
+      }
     }
   };
 
   return (
-    <form onSubmit={handleRegister}>
+    <form onSubmit={onSubmit}>
       <h2>Register</h2>
       <input
         type="text"
@@ -47,7 +48,7 @@ const Register = ({ onRegisterSuccess }) => {
         required
       />
       <button type="submit">Register</button>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {errorMsg && <p style={{ color: "red" }}>{errorMsg}</p>}
     </form>
   );
 };
