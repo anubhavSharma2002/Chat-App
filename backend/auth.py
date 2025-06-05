@@ -1,10 +1,10 @@
 from flask import Blueprint, request, jsonify, make_response
 from models import db, User
 from werkzeug.security import generate_password_hash, check_password_hash
+import traceback
 
 auth_bp = Blueprint('auth', __name__)
 
-# Handle CORS preflight manually for /register route
 @auth_bp.route('/register', methods=['OPTIONS'])
 def register_options():
     response = make_response()
@@ -14,23 +14,30 @@ def register_options():
     response.headers.add("Access-Control-Allow-Credentials", "true")
     return response
 
+
 @auth_bp.route('/register', methods=['POST'])
 def register():
-    data = request.get_json()
-    email = data.get('email')
-    password = data.get('password')
+    try:
+        data = request.get_json()
+        email = data.get('email')
+        password = data.get('password')
 
-    if not email or not password:
-        return jsonify({"success": False, "message": "Email and password required"}), 400
+        if not email or not password:
+            return jsonify({"success": False, "message": "Email and password required"}), 400
 
-    if User.query.filter_by(email=email).first():
-        return jsonify({"success": False, "message": "User already exists"}), 400
+        if User.query.filter_by(email=email).first():
+            return jsonify({"success": False, "message": "User already exists"}), 400
 
-    password_hash = generate_password_hash(password)
-    new_user = User(email=email, password_hash=password_hash)
-    db.session.add(new_user)
-    db.session.commit()
-    return jsonify({"success": True, "message": "Registered successfully"})
+        password_hash = generate_password_hash(password)
+        new_user = User(email=email, password_hash=password_hash)
+        db.session.add(new_user)
+        db.session.commit()
+        return jsonify({"success": True, "message": "Registered successfully"})
+    except Exception as e:
+        db.session.rollback()
+        traceback.print_exc()  # Print full traceback to logs
+        print(f"Registration error: {e}")
+        return jsonify({"success": False, "message": "Internal server error"}), 500
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
@@ -48,6 +55,7 @@ def forgot_password():
     data = request.get_json()
     user = User.query.filter_by(email=data['email']).first()
     if user:
+        # Placeholder: add real reset logic
         return jsonify({"success": True, "message": "Password reset not implemented"})
     return jsonify({"success": False, "message": "User not found"}), 404
 
