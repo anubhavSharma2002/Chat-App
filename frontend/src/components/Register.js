@@ -1,33 +1,55 @@
 import React, { useState } from 'react';
-import { api } from '../api';
+import axios from 'axios';
 
-function Register({ setScreen }) {
-  const [email, setEmail] = useState('');
+const Register = ({ onRegisterSuccess }) => {
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
-  const handleRegister = async () => {
+  const handleRegister = async (e) => {
+    e.preventDefault();
     try {
-      const res = await api.post('/auth/register', { email, password });
-      alert(res.data.message);
-      setScreen('login');
+      const response = await axios.post(
+        'https://chat-app-4apm.onrender.com/auth/register',
+        { username, password },
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          withCredentials: true
+        }
+      );
+
+      if (response.status === 201) {
+        onRegisterSuccess(); // Move to login or chat
+      }
     } catch (err) {
-      alert(err.response?.data?.message || 'Registration failed');
+      console.error('Register Error:', err.response?.data || err.message);
+      setError(err.response?.data?.message || 'Registration failed');
     }
   };
 
-  const handleKey = (e) => {
-    if (e.key === 'Enter') handleRegister();
-  };
-
   return (
-    <div className="form-container">
+    <form onSubmit={handleRegister}>
       <h2>Register</h2>
-      <input placeholder="Email" onChange={e => setEmail(e.target.value)} onKeyDown={handleKey} />
-      <input type="password" placeholder="Password" onChange={e => setPassword(e.target.value)} onKeyDown={handleKey} />
-      <button onClick={handleRegister}>Register</button>
-      <button onClick={() => setScreen('login')}>Go to Login</button>
-    </div>
+      <input
+        type="text"
+        placeholder="Username"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+        required
+      />
+      <input
+        type="password"
+        placeholder="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        required
+      />
+      <button type="submit">Register</button>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+    </form>
   );
-}
+};
 
 export default Register;
