@@ -24,11 +24,25 @@ function App() {
 
   return (
     <div className="app-container">
-      {screen === 'login' && <Login onLogin={handleLogin} onSwitch={() => setScreen('register')} onForgot={() => setScreen('forgot')} />}
-      {screen === 'register' && <Register onRegister={() => setScreen('login')} />}
-      {screen === 'forgot' && <ForgotPassword onBack={() => setScreen('login')} />}
-      {screen === 'userselect' && <UserSelect onChatStart={handleChatStart} userId={userId} />}
-      {screen === 'chat' && <ChatBox sender={userId} receiver={chatWith} onBack={() => setScreen('userselect')} />}
+      {screen === 'login' && (
+        <Login
+          onLogin={handleLogin}
+          onSwitch={() => setScreen('register')}
+          onForgot={() => setScreen('forgot')}
+        />
+      )}
+      {screen === 'register' && (
+        <Register onRegister={() => setScreen('login')} />
+      )}
+      {screen === 'forgot' && (
+        <ForgotPassword onBack={() => setScreen('login')} />
+      )}
+      {screen === 'userselect' && (
+        <UserSelect onChatStart={handleChatStart} userId={userId} />
+      )}
+      {screen === 'chat' && (
+        <ChatBox sender={userId} receiver={chatWith} onBack={() => setScreen('userselect')} />
+      )}
     </div>
   );
 }
