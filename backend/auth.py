@@ -22,21 +22,28 @@ def register():
         email = data.get('email')
         password = data.get('password')
 
+        print(f"[REGISTER] Incoming data: {data}")
+        print(f"[REGISTER] Email: {email}, Password: {password}, Type: {type(password)}")
+
         if not email or not password:
             return jsonify({"success": False, "message": "Email and password required"}), 400
 
         if User.query.filter_by(email=email).first():
             return jsonify({"success": False, "message": "User already exists"}), 400
 
-        password_hash = generate_password_hash(password)
+        from werkzeug.security import generate_password_hash
+        password_hash = generate_password_hash(str(password))  # Ensure it's string
+        print(f"[REGISTER] Hashed password: {password_hash}, Type: {type(password_hash)}")
+
         new_user = User(email=email, password_hash=password_hash)
         db.session.add(new_user)
         db.session.commit()
+
         return jsonify({"success": True, "message": "Registered successfully"})
+
     except Exception as e:
-        db.session.rollback()
-        traceback.print_exc()  # Print full traceback to logs
-        print(f"Registration error: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"success": False, "message": "Internal server error"}), 500
 
 @auth_bp.route('/login', methods=['POST'])
