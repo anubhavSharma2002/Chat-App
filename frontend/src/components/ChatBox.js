@@ -36,25 +36,32 @@ function ChatBox({ userId, chatWith, setScreen }) {
     }
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') sendMessage();
+  };
+
   return (
     <div className="chatbox-container">
-      <div className="chatbox-header">Chat with: {chatWith}</div>
-      <div className="chatbox-messages">
+      <h3>Chat with: {chatWith}</h3>
+      <div className="chat-messages">
         {messages.map((msg, idx) => (
-          <div key={idx} className="chatbox-message">
+          <div key={idx} className="chat-message">
             <b>{msg.sender}:</b> {msg.message}
-            <small>{new Date(msg.timestamp).toLocaleString()}</small>
+            <small className="timestamp">
+              {new Date(msg.timestamp).toLocaleString()}
+            </small>
           </div>
         ))}
       </div>
       <input
-        className="chatbox-input"
         value={message}
         onChange={e => setMessage(e.target.value)}
+        onKeyDown={handleKeyDown}
         placeholder="Type a message"
+        className="message-input"
       />
-      <button className="chatbox-button" onClick={sendMessage}>Send</button>
-      <button className="chatbox-button" onClick={() => setScreen('select')}>Back</button>
+      <button onClick={sendMessage}>Send</button>
+      <button onClick={() => setScreen('select')}>Back</button>
     </div>
   );
 }

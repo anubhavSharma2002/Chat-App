@@ -16,11 +16,15 @@ function Register({ setScreen }) {
     }
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') handleRegister();
+  };
+
   return (
     <div className="register-container">
       <h2>Register</h2>
-      <input placeholder="Email" onChange={e => setEmail(e.target.value)} />
-      <input type="password" placeholder="Password" onChange={e => setPassword(e.target.value)} />
+      <input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={handleKeyDown} />
+      <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={handleKeyDown} />
       <button onClick={handleRegister}>Register</button>
       <button onClick={() => setScreen('login')}>Go to Login</button>
     </div>

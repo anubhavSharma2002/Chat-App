@@ -17,11 +17,15 @@ function Login({ setScreen, setUserId }) {
     }
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') handleLogin();
+  };
+
   return (
     <div className="login-container">
       <h2>Login</h2>
-      <input placeholder="Email" onChange={e => setEmail(e.target.value)} />
-      <input type="password" placeholder="Password" onChange={e => setPassword(e.target.value)} />
+      <input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={handleKeyDown} />
+      <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={handleKeyDown} />
       <button onClick={handleLogin}>Login</button>
       <button onClick={() => setScreen('register')}>Register</button>
       <button onClick={() => setScreen('forgot')}>Forgot Password?</button>

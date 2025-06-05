@@ -24,10 +24,14 @@ function UserSelect({ setChatWith, setScreen }) {
     setScreen('login');
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') handleStartChat();
+  };
+
   return (
-    <div className="user-select-container">
+    <div className="userselect-container">
       <h2>Start Chat</h2>
-      <input placeholder="Enter email of user to chat" onChange={e => setOtherId(e.target.value)} />
+      <input placeholder="Enter email of user to chat" value={otherId} onChange={e => setOtherId(e.target.value)} onKeyDown={handleKeyDown} />
       <button onClick={handleStartChat}>Chat</button>
       <button onClick={handleLogout}>Logout</button>
     </div>

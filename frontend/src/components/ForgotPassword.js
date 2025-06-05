@@ -14,10 +14,14 @@ function ForgotPassword({ setScreen }) {
     }
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') handleReset();
+  };
+
   return (
-    <div className="forgot-password-container">
+    <div className="forgot-container">
       <h2>Forgot Password</h2>
-      <input placeholder="Email" onChange={e => setEmail(e.target.value)} />
+      <input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={handleKeyDown} />
       <button onClick={handleReset}>Reset Password</button>
       <button onClick={() => setScreen('login')}>Back to Login</button>
     </div>
