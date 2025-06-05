@@ -1,4 +1,3 @@
-// frontend/src/App.js
 import React, { useState } from 'react';
 import './App.css';
 import Login from './components/Login';
@@ -32,16 +31,23 @@ function App() {
         />
       )}
       {screen === 'register' && (
-        <Register onRegister={() => setScreen('login')} />
+        <Register onLogin={() => setScreen('login')} />
       )}
       {screen === 'forgot' && (
         <ForgotPassword onBack={() => setScreen('login')} />
       )}
       {screen === 'userselect' && (
-        <UserSelect onChatStart={handleChatStart} userId={userId} />
+        <UserSelect
+          setChatWith={handleChatStart}
+          setScreen={setScreen}
+        />
       )}
       {screen === 'chat' && (
-        <ChatBox sender={userId} receiver={chatWith} onBack={() => setScreen('userselect')} />
+        <ChatBox
+          sender={userId}
+          receiver={chatWith}
+          onBack={() => setScreen('userselect')}
+        />
       )}
     </div>
   );

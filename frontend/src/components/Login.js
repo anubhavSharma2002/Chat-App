@@ -1,4 +1,3 @@
-// frontend/src/components/Login.js
 import React, { useState } from 'react';
 import { api } from '../api';
 
@@ -10,7 +9,7 @@ function Login({ onLogin, onSwitch, onForgot }) {
     try {
       const res = await api.post('/auth/login', { email, password });
       localStorage.setItem('userId', res.data.user_id);
-      onLogin(res.data.user_id); // trigger login success
+      onLogin(res.data.user_id);
     } catch {
       alert('Login failed');
     }

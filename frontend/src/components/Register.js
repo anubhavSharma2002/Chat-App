@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { api } from '../api';
 
-function Register({ setScreen }) {
+function Register({ onLogin }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -9,7 +9,7 @@ function Register({ setScreen }) {
     try {
       const res = await api.post('/auth/register', { email, password });
       alert(res.data.message);
-      setScreen('login');
+      onLogin();
     } catch (err) {
       alert(err.response?.data?.message || 'Registration failed');
     }
@@ -22,10 +22,19 @@ function Register({ setScreen }) {
   return (
     <div className="form-container">
       <h2>Register</h2>
-      <input placeholder="Email" onChange={e => setEmail(e.target.value)} onKeyDown={handleKey} />
-      <input type="password" placeholder="Password" onChange={e => setPassword(e.target.value)} onKeyDown={handleKey} />
+      <input
+        placeholder="Email"
+        onChange={e => setEmail(e.target.value)}
+        onKeyDown={handleKey}
+      />
+      <input
+        type="password"
+        placeholder="Password"
+        onChange={e => setPassword(e.target.value)}
+        onKeyDown={handleKey}
+      />
       <button onClick={handleRegister}>Register</button>
-      <button onClick={() => setScreen('login')}>Go to Login</button>
+      <button onClick={onLogin}>Go to Login</button>
     </div>
   );
 }
