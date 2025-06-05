@@ -1,11 +1,17 @@
 from flask import Blueprint, request, jsonify
 from models import db, User
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_cors import cross_origin
 
 auth_bp = Blueprint('auth', __name__)
 
-@auth_bp.route('/register', methods=['POST'])
+@auth_bp.route('/register', methods=['POST', 'OPTIONS'])
+@cross_origin(origins=["https://baatkarona.vercel.app"], supports_credentials=True)
 def register():
+    if request.method == 'OPTIONS':
+        # Respond OK to preflight request
+        return '', 200
+    
     data = request.get_json()
     email = data.get('email')
     password = data.get('password')
@@ -22,8 +28,12 @@ def register():
     db.session.commit()
     return jsonify({"success": True, "message": "Registered successfully"})
 
-@auth_bp.route('/login', methods=['POST'])
+@auth_bp.route('/login', methods=['POST', 'OPTIONS'])
+@cross_origin(origins=["https://baatkarona.vercel.app"], supports_credentials=True)
 def login():
+    if request.method == 'OPTIONS':
+        return '', 200
+    
     data = request.get_json()
     email = data.get('email')
     password = data.get('password')
@@ -33,8 +43,12 @@ def login():
         return jsonify({"success": True, "user_id": user.email})
     return jsonify({"success": False, "message": "Invalid credentials"}), 401
 
-@auth_bp.route('/forgot-password', methods=['POST'])
+@auth_bp.route('/forgot-password', methods=['POST', 'OPTIONS'])
+@cross_origin(origins=["https://baatkarona.vercel.app"], supports_credentials=True)
 def forgot_password():
+    if request.method == 'OPTIONS':
+        return '', 200
+
     data = request.get_json()
     user = User.query.filter_by(email=data['email']).first()
     if user:
@@ -42,8 +56,12 @@ def forgot_password():
         return jsonify({"success": True, "message": "Password reset not implemented"})
     return jsonify({"success": False, "message": "User not found"}), 404
 
-@auth_bp.route('/check-user', methods=['POST'])
+@auth_bp.route('/check-user', methods=['POST', 'OPTIONS'])
+@cross_origin(origins=["https://baatkarona.vercel.app"], supports_credentials=True)
 def check_user():
+    if request.method == 'OPTIONS':
+        return '', 200
+
     data = request.get_json()
     user = User.query.filter_by(email=data['email']).first()
     return jsonify({"exists": bool(user)})

@@ -12,7 +12,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chat.db'
 app.config['UPLOAD_FOLDER'] = 'uploads'
-CORS(app, supports_credentials=True)
+CORS(app, resources={r"/*": {"origins": ["https://baatkarona.vercel.app"]}}, supports_credentials=True)
 socketio = SocketIO(app, cors_allowed_origins="*")
 db.init_app(app)
 
