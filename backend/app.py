@@ -5,6 +5,8 @@ from flask_cors import CORS
 from werkzeug.utils import secure_filename
 import os
 from models import db, Message  # Assuming Message is defined with image_url
+import eventlet
+eventlet.monkey_patch()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
@@ -70,5 +72,8 @@ def handle_message(data):
         'timestamp': new_msg.timestamp.isoformat()
     }, to=room, broadcast=True, include_self=False)
 
+
 if __name__ == '__main__':
-    socketio.run(app, debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    socketio.run(app, host='0.0.0.0', port=port)
+
