@@ -91,6 +91,24 @@ def reset_db():
     db.create_all()
     return "Database reset successfully"
 
+@app.route('/messages/<sender>/<receiver>', methods=['GET'])
+def get_messages(sender, receiver):
+    room1 = get_room_name(sender, receiver)
+    messages = Message.query.filter(
+        ((Message.sender == sender) & (Message.receiver == receiver)) |
+        ((Message.sender == receiver) & (Message.receiver == sender))
+    ).order_by(Message.timestamp).all()
+
+    return jsonify([
+        {
+            "sender": msg.sender,
+            "receiver": msg.receiver,
+            "message": msg.message,
+            "image_url": msg.image_url,
+            "timestamp": msg.timestamp.isoformat()
+        } for msg in messages
+    ])
+
 # Register the auth blueprint at /auth
 app.register_blueprint(auth_bp, url_prefix='/auth')
 

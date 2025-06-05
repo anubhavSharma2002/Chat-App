@@ -1,18 +1,30 @@
-import React, { useState, useEffect, useRef } from 'react';
+// frontend/src/components/ChatBox.js
+import React, { useEffect, useState } from 'react';
+import io from 'socket.io-client';
 import './ChatBox.css';
-import { io } from 'socket.io-client';
 
 const socket = io('https://chat-app-4apm.onrender.com');
 
-const ChatBox = ({ userId, chatWith, onBack }) => {
+function ChatBox({ sender, receiver, onBack }) {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
   const [image, setImage] = useState(null);
-  const [preview, setPreview] = useState(null);
-  const chatBoxRef = useRef(null);
 
   useEffect(() => {
-    socket.emit('join', { sender: userId, receiver: chatWith });
+    socket.emit('join', { sender, receiver });
+
+    const fetchOldMessages = async () => {
+      try {
+        const res = await fetch(`https://chat-app-4apm.onrender.com/messages/${sender}/${receiver}`);
+        const data = await res.json();
+        setMessages(data);
+      } catch (err) {
+        console.error('Failed to fetch messages:', err);
+      }
+    };
+
+    fetchOldMessages();
+
     socket.on('receive_message', (data) => {
       setMessages((prev) => [...prev, data]);
     });
@@ -20,109 +32,84 @@ const ChatBox = ({ userId, chatWith, onBack }) => {
     return () => {
       socket.off('receive_message');
     };
-  }, [userId, chatWith]);
+  }, [sender, receiver]);
 
   const sendMessage = async () => {
-    if (!message.trim() && !image) return;
+    if (!message && !image) return;
 
-    let imageUrl = '';
+    let image_url = '';
     if (image) {
       const formData = new FormData();
       formData.append('file', image);
+
       try {
         const res = await fetch('https://chat-app-4apm.onrender.com/upload', {
           method: 'POST',
           body: formData,
         });
         const data = await res.json();
-        imageUrl = 'https://chat-app-4apm.onrender.com' + data.url;
+        image_url = data.url;
       } catch (err) {
-        console.error('Upload failed:', err);
+        console.error('Upload failed', err);
+        return;
       }
     }
 
     const msgData = {
-      sender: userId,
-      receiver: chatWith,
-      message: message.trim(),
-      image_url: imageUrl,
+      sender,
+      receiver,
+      message,
+      image_url,
     };
 
     socket.emit('send_message', msgData);
     setMessages((prev) => [...prev, { ...msgData, timestamp: new Date().toISOString() }]);
     setMessage('');
     setImage(null);
-    setPreview(null);
   };
 
-  const handleKey = (e) => {
+  const handleKeyDown = (e) => {
     if (e.key === 'Enter') sendMessage();
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    setImage(file);
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setPreview(reader.result);
-      reader.readAsDataURL(file);
-    } else {
-      setPreview(null);
-    }
-  };
-
-  useEffect(() => {
-    if (chatBoxRef.current) {
-      chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
-    }
-  }, [messages]);
-
   return (
-    <div className="chat-container">
-      <div className="chat-header">
-        <button onClick={onBack}>← Back</button>
-        <h2>Chat with {chatWith}</h2>
+    <div className="chatbox">
+      <div className="chatbox-header">
+        <button className="back-btn" onClick={onBack}>← Back</button>
+        <h2>Baat Karo Na</h2>
       </div>
-      <div className="chat-box" ref={chatBoxRef}>
+      <div className="chat-messages">
         {messages.map((msg, idx) => (
-          <div
-            key={`${msg.timestamp}-${msg.sender}-${idx}`}
-            className={`message ${msg.sender === userId ? 'sent' : 'received'}`}
-          >
-            {msg.message && <div>{msg.message}</div>}
+          <div key={idx} className={`message ${msg.sender === sender ? 'sent' : 'received'}`}>
+            {msg.message && <p>{msg.message}</p>}
             {msg.image_url && (
-              <div>
-                <img
-                  src={msg.image_url}
-                  alt="Shared"
-                  className="shared-image"
-                />
-                <a href={msg.image_url} download target="_blank" rel="noopener noreferrer">
-                  Download
-                </a>
-              </div>
+              <img
+                src={`https://chat-app-4apm.onrender.com${msg.image_url}`}
+                alt="shared"
+                className="chat-image"
+              />
             )}
-            <small>{new Date(new Date(msg.timestamp).getTime() + (5.5 * 60 * 60 * 1000)).toLocaleTimeString('en-IN')}</small>
+            <span className="timestamp">{new Date(msg.timestamp).toLocaleTimeString()}</span>
           </div>
         ))}
       </div>
-      <div className="input-area">
+      <div className="chat-input">
         <input
+          type="text"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          onKeyDown={handleKey}
-          placeholder="Type a message"
+          onKeyDown={handleKeyDown}
+          placeholder="Type a message..."
         />
-        <input type="file" accept="image/*" onChange={handleFileChange} />
-        {preview && (
-          <div className="preview-container">
-            <img src={preview} alt="Preview" className="preview-image" />
-          </div>
-        )}
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setImage(e.target.files[0])}
+        />
         <button onClick={sendMessage}>Send</button>
       </div>
     </div>
   );
-};
+}
 
 export default ChatBox;
