@@ -56,7 +56,7 @@ function ChatBox({ userId, chatWith, setScreen }) {
             className={`message ${msg.sender === userId ? 'sent' : 'received'}`}
           >
             <div>{msg.message}</div>
-            <small>{new Date(msg.timestamp).toLocaleTimeString()}</small>
+            <small>{new Date(new Date(msg.timestamp).getTime() + (5.5 * 60 * 60 * 1000)).toLocaleTimeString('en-IN')}</small>
           </div>
         ))}
         <div ref={bottomRef}></div>
