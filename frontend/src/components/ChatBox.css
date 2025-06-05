@@ -2,96 +2,72 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: linear-gradient(to bottom right, #f9f9f9, #e0e0e0);
   padding: 10px;
+  background: #f0f4f7;
 }
 
 .chat-header {
   display: flex;
   align-items: center;
   gap: 10px;
-  background-color: #007bff;
-  color: white;
-  padding: 10px;
-  font-size: 1.2rem;
-  border-radius: 12px;
 }
 
-.back-button {
-  background: white;
-  border: none;
-  font-size: 1.2rem;
-  cursor: pointer;
-  border-radius: 6px;
-  padding: 4px 10px;
-  color: #007bff;
-}
-
-.chat-messages {
+.chat-box {
   flex: 1;
   overflow-y: auto;
   margin: 10px 0;
   padding: 10px;
-  border: 2px solid #ccc;
-  border-radius: 12px;
-  background: white;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 8px;
 }
 
-.chat-bubble {
-  max-width: 70%;
+.message {
   margin-bottom: 10px;
+  max-width: 70%;
   padding: 10px;
-  border-radius: 15px;
+  border-radius: 10px;
   word-wrap: break-word;
-  box-shadow: 2px 2px 5px #ccc;
+  position: relative;
 }
 
 .sent {
-  background-color: #dcf8c6;
   align-self: flex-end;
+  background-color: #daf8e3;
 }
 
 .received {
-  background-color: #ffffff;
   align-self: flex-start;
+  background-color: #f1f0f0;
 }
 
-.chat-input-area {
+.input-area {
   display: flex;
-  gap: 10px;
-  padding: 10px;
-  border-top: 1px solid #ccc;
+  flex-direction: column;
+  gap: 5px;
 }
 
-.chat-input-area input[type="text"] {
-  flex: 1;
+.input-area input[type="text"] {
   padding: 10px;
   font-size: 1rem;
+}
+
+.preview-container {
+  text-align: center;
+}
+
+.preview-image {
+  max-width: 150px;
+  max-height: 150px;
+  border: 2px solid #00aaff;
   border-radius: 8px;
-  border: 1px solid #ccc;
-}
-
-.chat-input-area input[type="file"] {
-  display: inline-block;
-}
-
-.chat-input-area button {
-  padding: 10px 14px;
-  font-size: 1rem;
-  border: none;
-  border-radius: 8px;
-  background-color: #007bff;
-  color: white;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.chat-input-area button:hover {
-  background-color: #0056b3;
-}
-
-.chat-media {
-  max-width: 200px;
-  border-radius: 10px;
   margin-top: 5px;
+}
+
+.shared-image {
+  max-width: 200px;
+  max-height: 200px;
+  margin: 5px 0;
+  border-radius: 10px;
+  box-shadow: 0 0 8px #00aaff;
 }

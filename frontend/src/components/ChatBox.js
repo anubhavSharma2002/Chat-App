@@ -1,136 +1,128 @@
-import React, { useState, useEffect, useRef } from "react";
-import io from "socket.io-client";
-import "./ChatBox.css";
+import React, { useState, useEffect, useRef } from 'react';
+import './ChatBox.css';
+import { io } from 'socket.io-client';
 
-const socket = io("https://chat-app-4apm.onrender.com");
+const socket = io('https://chat-app-4apm.onrender.com');
 
-function ChatBox({ userId, chatWith, onBack }) {
+const ChatBox = ({ userId, chatWith, onBack }) => {
+  const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
-  const [inputMessage, setInputMessage] = useState("");
-  const [selectedFile, setSelectedFile] = useState(null);
-  const messageEndRef = useRef(null);
+  const [image, setImage] = useState(null);
+  const [preview, setPreview] = useState(null);
+  const chatBoxRef = useRef(null);
 
   useEffect(() => {
-    socket.emit("join", { user1: userId, user2: chatWith });
-
-    socket.on("receive_message", (data) => {
+    socket.emit('join', { sender: userId, receiver: chatWith });
+    socket.on('receive_message', (data) => {
       setMessages((prev) => [...prev, data]);
     });
 
     return () => {
-      socket.off("receive_message");
+      socket.off('receive_message');
     };
   }, [userId, chatWith]);
 
-  useEffect(() => {
-    messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
   const sendMessage = async () => {
-    if (inputMessage.trim()) {
-      socket.emit("send_message", {
-        sender: userId,
-        receiver: chatWith,
-        message: inputMessage,
-      });
+    if (!message.trim() && !image) return;
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          sender: userId,
-          message: inputMessage,
-          timestamp: new Date().toISOString(),
-        },
-      ]);
-      setInputMessage("");
+    let imageUrl = '';
+    if (image) {
+      const formData = new FormData();
+      formData.append('file', image);
+      try {
+        const res = await fetch('https://chat-app-4apm.onrender.com/upload', {
+          method: 'POST',
+          body: formData,
+        });
+        const data = await res.json();
+        imageUrl = 'https://chat-app-4apm.onrender.com' + data.url;
+      } catch (err) {
+        console.error('Upload failed:', err);
+      }
+    }
+
+    const msgData = {
+      sender: userId,
+      receiver: chatWith,
+      message: message.trim(),
+      image_url: imageUrl,
+    };
+
+    socket.emit('send_message', msgData);
+    setMessages((prev) => [...prev, { ...msgData, timestamp: new Date().toISOString() }]);
+    setMessage('');
+    setImage(null);
+    setPreview(null);
+  };
+
+  const handleKey = (e) => {
+    if (e.key === 'Enter') sendMessage();
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    setImage(file);
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => setPreview(reader.result);
+      reader.readAsDataURL(file);
+    } else {
+      setPreview(null);
     }
   };
 
-  const handleFileUpload = async () => {
-    if (!selectedFile) return;
-    const formData = new FormData();
-    formData.append("file", selectedFile);
-    formData.append("sender", userId);
-    formData.append("receiver", chatWith);
-
-    const res = await fetch("https://chat-app-4apm.onrender.com/upload", {
-      method: "POST",
-      body: formData,
-    });
-
-    const data = await res.json();
-    if (data.success) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          sender: userId,
-          message: data.url,
-          timestamp: new Date().toISOString(),
-        },
-      ]);
+  useEffect(() => {
+    if (chatBoxRef.current) {
+      chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
     }
-
-    setSelectedFile(null);
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
-      sendMessage();
-    }
-  };
-
-  const renderMessage = (msg) => {
-    const isImage = /\.(jpg|jpeg|png|gif)$/i.test(msg.message);
-    const isVideo = /\.(mp4|mov)$/i.test(msg.message);
-    const isFile = /\.(pdf|docx)$/i.test(msg.message);
-
-    if (isImage) {
-      return <img src={msg.message} alt="Media" className="chat-media" />;
-    } else if (isVideo) {
-      return <video controls className="chat-media"><source src={msg.message} /></video>;
-    } else if (isFile) {
-      return <a href={msg.message} target="_blank" rel="noopener noreferrer">📄 Download File</a>;
-    }
-    return <span>{msg.message}</span>;
-  };
+  }, [messages]);
 
   return (
     <div className="chat-container">
       <div className="chat-header">
-        <button onClick={onBack} className="back-button">←</button>
-        <h2>Baat Karo Na – Chat with {chatWith}</h2>
+        <button onClick={onBack}>← Back</button>
+        <h2>Chat with {chatWith}</h2>
       </div>
-
-      <div className="chat-messages">
+      <div className="chat-box" ref={chatBoxRef}>
         {messages.map((msg, idx) => (
           <div
-            key={idx}
-            className={`chat-bubble ${msg.sender === userId ? "sent" : "received"}`}
+            key={`${msg.timestamp}-${msg.sender}-${idx}`}
+            className={`message ${msg.sender === userId ? 'sent' : 'received'}`}
           >
-            {renderMessage(msg)}
+            {msg.message && <div>{msg.message}</div>}
+            {msg.image_url && (
+              <div>
+                <img
+                  src={msg.image_url}
+                  alt="Shared"
+                  className="shared-image"
+                />
+                <a href={msg.image_url} download target="_blank" rel="noopener noreferrer">
+                  Download
+                </a>
+              </div>
+            )}
+            <small>{new Date(new Date(msg.timestamp).getTime() + (5.5 * 60 * 60 * 1000)).toLocaleTimeString('en-IN')}</small>
           </div>
         ))}
-        <div ref={messageEndRef}></div>
       </div>
-
-      <div className="chat-input-area">
+      <div className="input-area">
         <input
-          type="text"
-          placeholder="Type a message..."
-          value={inputMessage}
-          onChange={(e) => setInputMessage(e.target.value)}
-          onKeyDown={handleKeyDown}
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          onKeyDown={handleKey}
+          placeholder="Type a message"
         />
-        <input
-          type="file"
-          id="fileInput"
-          onChange={(e) => setSelectedFile(e.target.files[0])}
-        />
+        <input type="file" accept="image/*" onChange={handleFileChange} />
+        {preview && (
+          <div className="preview-container">
+            <img src={preview} alt="Preview" className="preview-image" />
+          </div>
+        )}
         <button onClick={sendMessage}>Send</button>
-        <button onClick={handleFileUpload}>📎</button>
       </div>
     </div>
   );
-}
+};
 
 export default ChatBox;

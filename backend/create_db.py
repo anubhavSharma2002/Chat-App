@@ -1,6 +1,5 @@
-from app import app
-from models import db
+from app import db, app
 
 with app.app_context():
     db.create_all()
-    print("Database tables created successfully!")
+    print("✅ Database created")

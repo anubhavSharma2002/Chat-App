@@ -1,46 +1,31 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import { api } from '../api';
 
-function Register({ onRegisterSuccess }) {
-  const [username, setUsername] = useState('');
+function Register({ setScreen }) {
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const onSubmit = async (e) => {
-    e.preventDefault();
+  const handleRegister = async () => {
     try {
-      const res = await axios.post(
-        'https://chat-app-4apm.onrender.com/auth/register',
-        { username, password },
-        { withCredentials: true }
-      );
+      const res = await api.post('/auth/register', { email, password });
       alert(res.data.message);
-      onRegisterSuccess(); // Switch to login screen
+      setScreen('login');
     } catch (err) {
-      console.error("Register Error:", err);
       alert(err.response?.data?.message || 'Registration failed');
     }
   };
 
+  const handleKey = (e) => {
+    if (e.key === 'Enter') handleRegister();
+  };
+
   return (
-    <div>
+    <div className="form-container">
       <h2>Register</h2>
-      <form onSubmit={onSubmit}>
-        <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-        /><br/>
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        /><br/>
-        <button type="submit">Register</button>
-      </form>
+      <input placeholder="Email" onChange={e => setEmail(e.target.value)} onKeyDown={handleKey} />
+      <input type="password" placeholder="Password" onChange={e => setPassword(e.target.value)} onKeyDown={handleKey} />
+      <button onClick={handleRegister}>Register</button>
+      <button onClick={() => setScreen('login')}>Go to Login</button>
     </div>
   );
 }

@@ -1,52 +1,49 @@
 from flask import Blueprint, request, jsonify
-from werkzeug.security import generate_password_hash, check_password_hash
 from models import db, User
-from flask_cors import cross_origin
+from werkzeug.security import generate_password_hash, check_password_hash
 
 auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/register', methods=['POST'])
-@cross_origin(supports_credentials=True)
 def register():
-    print("📩 Register route hit")
-    try:
-        data = request.get_json()
+    data = request.get_json()
+    email = data.get('email')
+    password = data.get('password')
 
-        if not data or not data.get('username') or not data.get('password'):
-            return jsonify({'message': 'Username and password are required'}), 400
+    if not email or not password:
+        return jsonify({"success": False, "message": "Email and password required"}), 400
 
-        if User.query.filter_by(username=data['username']).first():
-            return jsonify({'message': 'User already exists'}), 400
+    if User.query.filter_by(email=email).first():
+        return jsonify({"success": False, "message": "User already exists"}), 400
 
-        hashed_password = generate_password_hash(data['password'], method='sha256')
-        new_user = User(username=data['username'], password=hashed_password)
-        db.session.add(new_user)
-        db.session.commit()
-
-        return jsonify({'message': 'User registered successfully'}), 201
-
-    except Exception as e:
-        # Print error to server logs
-        import traceback
-        print("❌ Exception occurred in /register")
-        traceback.print_exc()
-        return jsonify({'message': 'Internal server error'}), 500
+    password_hash = generate_password_hash(password)
+    new_user = User(email=email, password_hash=password_hash)
+    db.session.add(new_user)
+    db.session.commit()
+    return jsonify({"success": True, "message": "Registered successfully"})
 
 @auth_bp.route('/login', methods=['POST'])
-@cross_origin(supports_credentials=True)
 def login():
-    try:
-        data = request.get_json()
+    data = request.get_json()
+    email = data.get('email')
+    password = data.get('password')
 
-        if not data or not data.get('username') or not data.get('password'):
-            return jsonify({'message': 'Username and password are required'}), 400
+    user = User.query.filter_by(email=email).first()
+    if user and check_password_hash(user.password_hash, password):
+        return jsonify({"success": True, "user_id": user.email})
+    return jsonify({"success": False, "message": "Invalid credentials"}), 401
 
-        user = User.query.filter_by(username=data['username']).first()
-        if not user or not check_password_hash(user.password, data['password']):
-            return jsonify({'message': 'Invalid credentials'}), 401
+@auth_bp.route('/forgot-password', methods=['POST'])
+def forgot_password():
+    data = request.get_json()
+    user = User.query.filter_by(email=data['email']).first()
+    if user:
+        # Placeholder: add real reset logic
+        return jsonify({"success": True, "message": "Password reset not implemented"})
+    return jsonify({"success": False, "message": "User not found"}), 404
 
-        return jsonify({'message': 'Login successful', 'user_id': user.id}), 200
-
-    except Exception as e:
-        print(f"❌ Error in /login: {e}")
-        return jsonify({'message': 'Internal server error'}), 500
+@auth_bp.route('/check-user', methods=['POST'])
+def check_user():
+    data = request.get_json()
+    user = User.query.filter_by(email=data['email']).first()
+    return jsonify({"exists": bool(user)})
