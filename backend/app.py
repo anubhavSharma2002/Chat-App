@@ -1,14 +1,17 @@
+import eventlet
+
+eventlet.monkey_patch()
+
 from flask import Flask, request, jsonify, send_from_directory
 from flask_socketio import SocketIO, emit, join_room
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 import os
+
 from models import db, Message  # Assuming Message model has image_url and timestamp
 from auth import auth_bp
-import eventlet
 
-eventlet.monkey_patch()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
