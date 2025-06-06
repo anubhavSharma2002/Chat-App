@@ -5,11 +5,13 @@ import Register from './components/Register';
 import ForgotPassword from './components/ForgotPassword';
 import UserSelect from './components/UserSelect';
 import ChatBox from './components/ChatBox';
+import EmojiSpinner from './components/EmojiSpinner'; // ✅ Make sure path is correct
 
 function App() {
   const [screen, setScreen] = useState('login');
   const [userId, setUserId] = useState('');
   const [chatWith, setChatWith] = useState('');
+  const [loading, setLoading] = useState(false); // ✅ Spinner loading state
 
   useEffect(() => {
     const savedUserId = localStorage.getItem('userId');
@@ -19,57 +21,71 @@ function App() {
     }
   }, []);
 
+  const transitionScreen = (nextScreen) => {
+    setLoading(true);
+    setTimeout(() => {
+      setScreen(nextScreen);
+      setLoading(false);
+    }, 1000); // 1-second spinner animation
+  };
+
   const handleLogin = (id) => {
     setUserId(id);
     localStorage.setItem('userId', id);
-    setScreen('userselect');
+    transitionScreen('userselect');
   };
 
   const handleLogout = () => {
     setUserId('');
     setChatWith('');
     localStorage.removeItem('userId');
-    setScreen('login');
+    transitionScreen('login');
   };
 
   const handleChatStart = (partnerId) => {
     setChatWith(partnerId);
-    setScreen('chat');
+    transitionScreen('chat');
   };
 
   return (
     <div className="app-container">
-      {screen === 'login' && (
-        <Login
-          onLogin={handleLogin}
-          onSwitch={() => setScreen('register')}
-          onForgot={() => setScreen('forgot')}
-        />
-      )}
-      {screen === 'register' && (
-        <Register
-          onLogin={() => setScreen('login')}
-        />
-      )}
-      {screen === 'forgot' && (
-        <ForgotPassword
-          onBack={() => setScreen('login')}
-        />
-      )}
-      {screen === 'userselect' && (
-        <UserSelect
-          userId={userId}
-          setChatWith={handleChatStart}
-          setScreen={setScreen}
-          onLogout={handleLogout}
-        />
-      )}
-      {screen === 'chat' && (
-        <ChatBox
-          sender={userId}
-          receiver={chatWith}
-          onBack={() => setScreen('userselect')}
-        />
+      {loading ? (
+        <EmojiSpinner />
+      ) : (
+        <>
+          {screen === 'login' && (
+            <Login
+              onLogin={handleLogin}
+              onSwitch={() => transitionScreen('register')}
+              onForgot={() => transitionScreen('forgot')}
+            />
+          )}
+          {screen === 'register' && (
+            <Register
+              onLogin={() => transitionScreen('login')}
+            />
+          )}
+          {screen === 'forgot' && (
+            <ForgotPassword
+              onBack={() => transitionScreen('login')}
+            />
+          )}
+          {screen === 'userselect' && (
+            <UserSelect
+              userId={userId}
+              setChatWith={handleChatStart}
+              setScreen={setScreen}
+              onLogout={handleLogout}
+            />
+          )}
+          {screen === 'chat' && (
+            <ChatBox
+              sender={userId}
+              receiver={chatWith}
+              onBack={() => transitionScreen('userselect')}
+            />
+          )}
+        </>
       )}
     </div>
   );
