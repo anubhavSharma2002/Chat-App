@@ -8,6 +8,8 @@ from flask_cors import CORS
 import os
 import cloudinary
 import cloudinary.uploader
+import uuid
+import time
 
 from models import db, Message
 from auth import auth_bp
@@ -19,17 +21,20 @@ app.config['SECRET_KEY'] = 'secret!'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://chat_app_db_4lkr_user:QAmEWmOHpGElG2C0fZiVU67ZNeu1ZMhc@dpg-d11575ali9vc738dfifg-a/chat_app_db_4lkr'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# ✅ Cloudinary configuration
 cloudinary.config(
     cloud_name='dwxi8oubd',
     api_key='737445128586493',
     api_secret='iyUN0_tytlInZ0oE5z1dxSRLwlc'
 )
 
-# CORS for frontend
+# ✅ Enable CORS for frontend
 CORS(app, supports_credentials=True)
 
+# ✅ Initialize SocketIO
 socketio = SocketIO(app, cors_allowed_origins=["https://baatkarona.vercel.app"])
 
+# ✅ Initialize SQLAlchemy
 db.init_app(app)
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
@@ -37,6 +42,7 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+# ✅ Image Upload Route (with cache-busting)
 @app.route('/upload', methods=['POST'])
 def upload_file():
     if 'file' not in request.files:
@@ -48,8 +54,17 @@ def upload_file():
 
     if file and allowed_file(file.filename):
         try:
-            upload_result = cloudinary.uploader.upload(file)
-            return jsonify({'url': upload_result['secure_url']}), 200
+            unique_id = str(uuid.uuid4())  # Unique public ID for each file
+            upload_result = cloudinary.uploader.upload(
+                file,
+                public_id=unique_id,
+                resource_type="image",
+                invalidate=True
+            )
+            secure_url = upload_result['secure_url']
+            cache_busted_url = f"{secure_url}?v={int(time.time())}"
+
+            return jsonify({'url': cache_busted_url}), 200
         except Exception as e:
             return jsonify({'error': str(e)}), 500
 
@@ -99,13 +114,10 @@ def get_messages(sender, receiver):
         } for msg in messages
     ])
 
-# Register the auth blueprint at /auth
+# ✅ Auth Blueprint
 app.register_blueprint(auth_bp, url_prefix='/auth')
 
-# ❌ Do NOT auto-reset DB on app start
-# with app.app_context():
-#     db.create_all()
-
+# ❌ DO NOT enable this in production
 @app.route('/reset-db')
 def reset_db():
     db.drop_all()
