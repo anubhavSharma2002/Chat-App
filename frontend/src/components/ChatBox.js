@@ -30,18 +30,19 @@ function ChatBox({ sender, receiver, onBack }) {
       setMessages((prev) => [...prev, data]);
     });
 
-    socket.on('delete_message', (data) => {
-      setMessages((prev) => prev.filter((msg) => msg.id !== data.id));
+    socket.on('message_deleted', (data) => {
+      setMessages((prev) => prev.filter((msg) => msg.id !== data.message_id));
+      setSelectedMessageId(null);
     });
 
     return () => {
       socket.off('receive_message');
-      socket.off('delete_message');
+      socket.off('message_deleted');
     };
   }, [sender, receiver]);
 
   const sendMessage = async () => {
-    if (!message && !image) return;
+    if (!message.trim() && !image) return;
 
     let image_url = '';
     let public_id = '';
@@ -106,7 +107,7 @@ function ChatBox({ sender, receiver, onBack }) {
   };
 
   const handleDelete = (id) => {
-    socket.emit('delete_message', { id });
+    socket.emit('delete_message', { message_id: id });
     setSelectedMessageId(null);
   };
 
@@ -167,11 +168,7 @@ function ChatBox({ sender, receiver, onBack }) {
           onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
         />
 
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleImageChange}
-        />
+        <input type="file" accept="image/*" onChange={handleImageChange} />
 
         {previewUrl && (
           <div className="image-preview">

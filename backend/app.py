@@ -16,11 +16,11 @@ from auth import auth_bp
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 
-# ✅ PostgreSQL configuration
+# PostgreSQL config
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://chat_app_db_4lkr_user:QAmEWmOHpGElG2C0fZiVU67ZNeu1ZMhc@dpg-d11575ali9vc738dfifg-a/chat_app_db_4lkr'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# ✅ Cloudinary configuration
+# Cloudinary config
 cloudinary.config(
     cloud_name='dwxi8oubd',
     api_key='737445128586493',
@@ -37,7 +37,6 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'}
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# ✅ Route: Upload Image to Cloudinary
 @app.route('/upload', methods=['POST'])
 def upload_file():
     if 'file' not in request.files:
@@ -64,14 +63,12 @@ def upload_file():
 
     return jsonify({'error': 'Invalid file type'}), 400
 
-# ✅ Route: Get Download URL for a Cloudinary image
 @app.route('/download-image', methods=['GET'])
 def get_download_link():
     public_id = request.args.get('public_id')
     if not public_id:
         return jsonify({'error': 'Public ID is required'}), 400
 
-    # Cloudinary transformation to force download
     download_url = cloudinary.CloudinaryImage(public_id).build_url(
         flags="attachment",
         secure=True
@@ -100,7 +97,9 @@ def handle_message(data):
     db.session.commit()
 
     emit('receive_message', {
+        'id': new_msg.id,
         'sender': sender,
+        'receiver': receiver,
         'message': message,
         'image_url': image_url,
         'timestamp': new_msg.timestamp.isoformat()
@@ -115,6 +114,7 @@ def get_messages(sender, receiver):
 
     return jsonify([
         {
+            "id": msg.id,
             "sender": msg.sender,
             "receiver": msg.receiver,
             "message": msg.message,
@@ -142,7 +142,6 @@ def handle_delete_message(data):
         room = get_room_name(msg.sender, msg.receiver)
         emit('message_deleted', {"message_id": msg_id}, to=room)
 
-# ✅ Auth blueprint registration
 app.register_blueprint(auth_bp, url_prefix='/auth')
 
 @app.route('/reset-db')
