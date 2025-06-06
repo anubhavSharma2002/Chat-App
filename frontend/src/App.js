@@ -5,20 +5,31 @@ import Register from './components/Register';
 import ForgotPassword from './components/ForgotPassword';
 import UserSelect from './components/UserSelect';
 import ChatBox from './components/ChatBox';
-import EmojiSpinner from './components/EmojiSpinner'; // ✅ Make sure path is correct
+import EmojiSpinner from './components/EmojiSpinner';
 
 function App() {
   const [screen, setScreen] = useState('login');
   const [userId, setUserId] = useState('');
   const [chatWith, setChatWith] = useState('');
-  const [loading, setLoading] = useState(false); // ✅ Spinner loading state
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const savedUserId = localStorage.getItem('userId');
     if (savedUserId) {
       setUserId(savedUserId);
       setScreen('userselect');
+      window.history.pushState({ screen: 'userselect' }, 'userselect');
     }
+
+    const handlePopState = (event) => {
+      const prevScreen = event.state?.screen;
+      if (prevScreen) {
+        setScreen(prevScreen);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
   const transitionScreen = (nextScreen) => {
@@ -26,7 +37,8 @@ function App() {
     setTimeout(() => {
       setScreen(nextScreen);
       setLoading(false);
-    }, 1000); // 1-second spinner animation
+      window.history.pushState({ screen: nextScreen }, nextScreen);
+    }, 1000);
   };
 
   const handleLogin = (id) => {
