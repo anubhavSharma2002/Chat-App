@@ -103,7 +103,7 @@ def handle_message(data):
         'message': message,
         'image_url': image_url,
         'timestamp': new_msg.timestamp.isoformat()
-    }, to=room, broadcast=True, include_self=False)
+    }, to=room, broadcast=True)  # ✅ Sender will now also receive the message
 
 @app.route('/messages/<sender>/<receiver>', methods=['GET'])
 def get_messages(sender, receiver):
