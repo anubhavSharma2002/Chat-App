@@ -106,13 +106,20 @@ function ChatBox({ sender, receiver, onBack }) {
     }
   };
 
-  const handleDelete = (id) => {
-    socket.emit('delete_message', { message_id: id });
+  const handleDelete = () => {
+    if (!selectedMessageId) return;
+    socket.emit('delete_message', { message_id: selectedMessageId });
     setSelectedMessageId(null);
   };
 
   const handleSelect = (id) => {
-    setSelectedMessageId(selectedMessageId === id ? null : id);
+    // Only allow sender to select own messages for delete
+    const selectedMsg = messages.find((msg) => msg.id === id);
+    if (selectedMsg && selectedMsg.sender === sender) {
+      setSelectedMessageId(selectedMessageId === id ? null : id);
+    } else {
+      setSelectedMessageId(null);
+    }
   };
 
   return (
@@ -143,7 +150,7 @@ function ChatBox({ sender, receiver, onBack }) {
                   }}
                 />
                 {msg.public_id && (
-                  <button className="download-btn" onClick={() => handleDownload(msg.public_id)}>
+                  <button className="download-btn" onClick={(e) => { e.stopPropagation(); handleDownload(msg.public_id); }}>
                     Download
                   </button>
                 )}
@@ -151,12 +158,6 @@ function ChatBox({ sender, receiver, onBack }) {
             )}
 
             <span className="timestamp">{new Date(msg.timestamp).toLocaleTimeString()}</span>
-
-            {selectedMessageId === msg.id && msg.sender === sender && (
-              <button className="delete-btn" onClick={(e) => { e.stopPropagation(); handleDelete(msg.id); }}>
-                Delete
-              </button>
-            )}
           </div>
         ))}
       </div>
@@ -175,7 +176,15 @@ function ChatBox({ sender, receiver, onBack }) {
             <img src={previewUrl} alt="Preview" className="preview-img" />
           </div>
         )}
-        <button onClick={sendMessage}>Send</button>
+
+        <div className="button-group">
+          <button onClick={sendMessage}>Send</button>
+          {selectedMessageId && (
+            <button className="delete-common-btn" onClick={handleDelete}>
+              Delete Selected
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
