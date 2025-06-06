@@ -35,11 +35,6 @@ db.init_app(app)
 # Ensure uploads directory exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-
-@app._got_first_request
-def initialize_database():
-    db.create_all()
-
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 def allowed_file(filename):
@@ -117,5 +112,7 @@ app.register_blueprint(auth_bp, url_prefix='/auth')
 
 
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))
-    socketio.run(app, host='0.0.0.0', port=port)
+    with app.app_context():
+        db.create_all()
+    socketio.run(app, host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
+
