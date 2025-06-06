@@ -1,26 +1,24 @@
-/* ChatBox.css */
-
+/* Container */
 .chatbox {
+  max-width: 600px;
+  margin: 10px auto;
+  border: 1px solid #ddd;
+  border-radius: 10px;
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  max-width: 600px;
-  margin: 0 auto;
-  border: 1px solid #ccc;
-  background: #fff;
-  font-family: Arial, sans-serif;
+  height: 90vh;
+  background-color: #fff;
 }
 
+/* Header */
 .chatbox-header {
   display: flex;
   align-items: center;
-  padding: 10px;
-  background: #4a90e2;
+  padding: 10px 15px;
+  background-color: #1e90ff;
   color: white;
-  font-weight: bold;
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
 }
 
 .back-btn {
@@ -32,76 +30,82 @@
   margin-right: 15px;
 }
 
+/* Messages container */
 .chat-messages {
-  flex-grow: 1;
-  overflow-y: auto;
+  flex: 1;
   padding: 10px;
-  background: #f1f1f1;
+  overflow-y: auto;
+  position: relative;
+  background-color: #f9f9f9;
+  padding-bottom: 70px; /* space for input area */
 }
 
+/* Single message */
 .message {
-  max-width: 75%;
+  position: relative;
   margin-bottom: 12px;
   padding: 8px 12px;
+  max-width: 75%;
   border-radius: 12px;
-  position: relative;
   word-wrap: break-word;
+  user-select: none;
   cursor: pointer;
-  transition: background-color 0.2s ease;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .message.sent {
-  background-color: #DCF8C6;
+  background-color: #dcf8c6;
   margin-left: auto;
 }
 
 .message.received {
-  background-color: white;
+  background-color: #fff;
   margin-right: auto;
 }
 
 .message.selected {
-  border: 2px solid #4a90e2;
-  background-color: #e0e7ff !important;
+  border: 2px solid #1e90ff;
 }
 
-.message p {
-  margin: 0 0 5px 0;
-}
-
+/* Timestamp */
 .timestamp {
-  font-size: 0.7rem;
-  color: #666;
-  position: absolute;
-  bottom: 4px;
-  right: 8px;
+  font-size: 10px;
+  color: #999;
+  display: block;
+  margin-top: 6px;
+  text-align: right;
 }
 
+/* Image container */
 .image-container {
+  margin-top: 6px;
   position: relative;
 }
 
 .chat-image {
   max-width: 100%;
-  border-radius: 10px;
-  margin-top: 5px;
+  border-radius: 8px;
+  max-height: 200px;
+  display: block;
+  object-fit: contain;
 }
 
+/* Download button */
 .download-btn {
   position: absolute;
-  bottom: 5px;
-  left: 5px;
-  background: rgba(74, 144, 226, 0.8);
+  bottom: 6px;
+  right: 6px;
+  background-color: rgba(30, 144, 255, 0.8);
   border: none;
   color: white;
+  padding: 4px 8px;
   font-size: 12px;
-  padding: 2px 6px;
-  border-radius: 6px;
+  border-radius: 12px;
   cursor: pointer;
   user-select: none;
 }
 
+/* Delete button */
 .delete-btn {
   position: absolute;
   top: -10px;
@@ -117,114 +121,85 @@
   z-index: 5;
   box-shadow: 0 0 5px rgba(255, 77, 77, 0.7);
   transition: background-color 0.2s ease;
+  pointer-events: auto;
 }
 
 .delete-btn:hover {
   background: #e60000;
 }
 
-/* Chat input area */
-
+/* Input area */
 .chat-input {
-  padding: 10px;
-  background: #eee;
+  padding: 10px 15px;
+  border-top: 1px solid #ddd;
+  background: #fff;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  border-top: 1px solid #ccc;
 }
 
 .chat-input input[type="text"] {
-  width: 100%;
   padding: 10px;
-  font-size: 1rem;
-  border-radius: 25px;
+  font-size: 16px;
   border: 1px solid #ccc;
+  border-radius: 8px;
   outline: none;
-  box-sizing: border-box;
+  width: 100%;
+  margin-bottom: 10px;
 }
 
 .chat-input input[type="file"] {
-  cursor: pointer;
+  margin-bottom: 10px;
 }
 
 .chat-input button {
-  background-color: #4a90e2;
+  background-color: #1e90ff;
   border: none;
   color: white;
-  padding: 10px 0;
-  font-size: 1.1rem;
-  border-radius: 25px;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 8px;
   cursor: pointer;
+  user-select: none;
   transition: background-color 0.3s ease;
 }
 
 .chat-input button:hover {
-  background-color: #357ABD;
+  background-color: #0f6cd1;
 }
 
-/* Image preview */
+/* Preview image */
 .image-preview {
-  max-width: 150px;
-  max-height: 150px;
-  margin: 0 auto;
-  position: relative;
+  margin-bottom: 10px;
 }
 
-.image-preview img.preview-img {
-  width: 100%;
-  height: auto;
-  border-radius: 10px;
+.preview-img {
+  max-width: 100%;
+  max-height: 150px;
+  border-radius: 8px;
   object-fit: contain;
 }
 
-/* Responsive for mobile */
-
+/* Responsive for small devices */
 @media (max-width: 600px) {
   .chatbox {
-    max-width: 100vw;
     height: 100vh;
+    border-radius: 0;
+    max-width: 100%;
   }
 
   .chatbox-header {
-    font-size: 1.2rem;
-    padding: 10px 15px;
-  }
-
-  .message {
-    max-width: 85%;
-    font-size: 0.9rem;
-    padding: 10px 14px;
-  }
-
-  .timestamp {
-    font-size: 0.6rem;
-    bottom: 2px;
-    right: 6px;
-  }
-
-  .delete-btn {
-    top: -8px;
-    right: -8px;
-    font-size: 10px;
-    padding: 3px 6px;
-  }
-
-  .chat-input {
-    padding: 12px;
-    gap: 12px;
-  }
-
-  .chat-input input[type="text"] {
-    font-size: 1rem;
     padding: 12px 15px;
   }
 
-  /* Stack input, file input and send button vertically */
-  .chat-input input[type="file"],
-  .chat-input button {
-    width: 100%;
-    border-radius: 25px;
-    padding: 12px 0;
+  .delete-btn {
+    top: 4px !important;
+    right: 4px !important;
+    font-size: 14px !important;
+    padding: 6px 10px !important;
+    border-radius: 20px !important;
+    background-color: #ff4d4d !important;
+    box-shadow: 0 0 8px rgba(255, 77, 77, 0.9) !important;
+    z-index: 9999 !important;
+    display: block !important;
   }
 }

@@ -32,14 +32,14 @@ function ChatBox({ sender, receiver, onBack }) {
 
     socket.on('message_deleted', (data) => {
       setMessages((prev) => prev.filter((msg) => msg.id !== data.message_id));
-      setSelectedMessageId(null);
+      if (selectedMessageId === data.message_id) setSelectedMessageId(null);
     });
 
     return () => {
       socket.off('receive_message');
       socket.off('message_deleted');
     };
-  }, [sender, receiver]);
+  }, [sender, receiver, selectedMessageId]);
 
   const sendMessage = async () => {
     if (!message.trim() && !image) return;
@@ -143,7 +143,7 @@ function ChatBox({ sender, receiver, onBack }) {
                   }}
                 />
                 {msg.public_id && (
-                  <button className="download-btn" onClick={(e) => { e.stopPropagation(); handleDownload(msg.public_id); }}>
+                  <button className="download-btn" onClick={() => handleDownload(msg.public_id)}>
                     Download
                   </button>
                 )}
@@ -153,7 +153,9 @@ function ChatBox({ sender, receiver, onBack }) {
             <span className="timestamp">{new Date(msg.timestamp).toLocaleTimeString()}</span>
 
             {selectedMessageId === msg.id && msg.sender === sender && (
-              <button className="delete-btn" onClick={(e) => { e.stopPropagation(); handleDelete(msg.id); }}>Delete</button>
+              <button className="delete-btn" onClick={(e) => { e.stopPropagation(); handleDelete(msg.id); }}>
+                Delete
+              </button>
             )}
           </div>
         ))}
@@ -167,15 +169,12 @@ function ChatBox({ sender, receiver, onBack }) {
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
         />
-
         <input type="file" accept="image/*" onChange={handleImageChange} />
-
         {previewUrl && (
           <div className="image-preview">
             <img src={previewUrl} alt="Preview" className="preview-img" />
           </div>
         )}
-
         <button onClick={sendMessage}>Send</button>
       </div>
     </div>
