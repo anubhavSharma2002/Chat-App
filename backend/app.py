@@ -113,6 +113,12 @@ app.register_blueprint(auth_bp, url_prefix='/auth')
 with app.app_context():
         db.create_all()
 
+@app.route('/reset-db')
+def reset_db():
+    db.drop_all()
+    db.create_all()
+    return "Database reset successfully"
+
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
 
