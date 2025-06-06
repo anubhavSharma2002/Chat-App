@@ -15,18 +15,12 @@ from auth import auth_bp
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chat.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'uploads'
 
 # Enable CORS for your frontend domain with credentials support
-CORS(app, supports_credentials=True, resources={
-    r"/*": {
-        "origins": ["https://baatkarona.vercel.app"],
-        "methods": ["GET", "POST", "OPTIONS", "PUT", "DELETE"],
-        "allow_headers": ["Content-Type", "Authorization", "Access-Control-Allow-Credentials"],
-        "supports_credentials": True
-    }
-})
+CORS(app, supports_credentials=True)
 
 socketio = SocketIO(app, cors_allowed_origins=["https://baatkarona.vercel.app"])
 
