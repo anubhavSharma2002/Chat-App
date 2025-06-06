@@ -9,6 +9,7 @@ function ChatBox({ sender, receiver, onBack }) {
   const [messages, setMessages] = useState([]);
   const [image, setImage] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [selectedMessages, setSelectedMessages] = useState([]);
 
   useEffect(() => {
     socket.emit('join', { sender, receiver });
@@ -29,8 +30,14 @@ function ChatBox({ sender, receiver, onBack }) {
       setMessages((prev) => [...prev, data]);
     });
 
+    socket.on('message_deleted', ({ message_id }) => {
+      setMessages((prev) => prev.filter(msg => msg.id !== message_id));
+      setSelectedMessages(prev => prev.filter(id => id !== message_id));
+    });
+
     return () => {
       socket.off('receive_message');
+      socket.off('message_deleted');
     };
   }, [sender, receiver]);
 
@@ -72,16 +79,6 @@ function ChatBox({ sender, receiver, onBack }) {
 
     socket.emit('send_message', msgData);
 
-    setMessages((prev) => [
-      ...prev,
-      {
-        ...msgData,
-        timestamp: new Date().toISOString(),
-      },
-    ]);
-
-    saveChatHistory(receiver);
-
     setMessage('');
     setImage(null);
     setPreviewUrl(null);
@@ -122,16 +119,37 @@ function ChatBox({ sender, receiver, onBack }) {
     }
   };
 
+  const toggleSelectMessage = (id) => {
+    setSelectedMessages(prev =>
+      prev.includes(id) ? prev.filter(msgId => msgId !== id) : [...prev, id]
+    );
+  };
+
+  const deleteSelectedMessages = () => {
+    selectedMessages.forEach(id => {
+      socket.emit('delete_message', { message_id: id });
+    });
+  };
+
   return (
     <div className="chatbox">
       <div className="chatbox-header">
         <button className="back-btn" onClick={onBack}>← Back</button>
         <h2>Baat Karo Na</h2>
+        {selectedMessages.length > 0 && (
+          <button className="delete-btn" onClick={deleteSelectedMessages}>
+            Delete ({selectedMessages.length})
+          </button>
+        )}
       </div>
 
       <div className="chat-messages">
-        {messages.map((msg, index) => (
-          <div key={index} className={`message ${msg.sender === sender ? 'sent' : 'received'}`}>
+        {messages.map((msg) => (
+          <div
+            key={msg.id}
+            className={`message ${msg.sender === sender ? 'sent' : 'received'} ${selectedMessages.includes(msg.id) ? 'selected' : ''}`}
+            onClick={() => toggleSelectMessage(msg.id)}
+          >
             {msg.message && <p>{msg.message}</p>}
 
             {msg.image_url && (

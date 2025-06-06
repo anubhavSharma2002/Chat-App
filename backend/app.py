@@ -123,6 +123,25 @@ def get_messages(sender, receiver):
         } for msg in messages
     ])
 
+@app.route('/delete-message/<int:message_id>', methods=['DELETE'])
+def delete_message(message_id):
+    msg = Message.query.get(message_id)
+    if not msg:
+        return jsonify({"error": "Message not found"}), 404
+    db.session.delete(msg)
+    db.session.commit()
+    return jsonify({"success": True})
+
+@socketio.on('delete_message')
+def handle_delete_message(data):
+    msg_id = data.get('message_id')
+    msg = Message.query.get(msg_id)
+    if msg:
+        db.session.delete(msg)
+        db.session.commit()
+        room = get_room_name(msg.sender, msg.receiver)
+        emit('message_deleted', {"message_id": msg_id}, to=room)
+
 # ✅ Auth blueprint registration
 app.register_blueprint(auth_bp, url_prefix='/auth')
 
