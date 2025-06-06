@@ -17,11 +17,7 @@ function ChatBox({ sender, receiver, onBack }) {
       try {
         const res = await fetch(`https://chat-app-4apm.onrender.com/messages/${sender}/${receiver}`);
         const data = await res.json();
-        const formatted = data.map(msg => ({
-          ...msg,
-          image_url: msg.image_url ? `https://chat-app-4apm.onrender.com${msg.image_url}` : ''
-        }));
-        setMessages(formatted);
+        setMessages(data);
       } catch (err) {
         console.error('Failed to load messages:', err);
       }
@@ -30,9 +26,6 @@ function ChatBox({ sender, receiver, onBack }) {
     fetchMessages();
 
     socket.on('receive_message', (data) => {
-      if (data.image_url) {
-        data.image_url = `https://chat-app-4apm.onrender.com${data.image_url}`;
-      }
       setMessages((prev) => [...prev, data]);
     });
 
@@ -45,6 +38,8 @@ function ChatBox({ sender, receiver, onBack }) {
     if (!message && !image) return;
 
     let image_url = '';
+    let public_id = '';
+
     if (image) {
       const formData = new FormData();
       formData.append('file', image);
@@ -56,6 +51,7 @@ function ChatBox({ sender, receiver, onBack }) {
         const data = await res.json();
         if (data.url) {
           image_url = data.url;
+          public_id = data.public_id;
         } else {
           alert('Image upload failed');
           return;
@@ -71,6 +67,7 @@ function ChatBox({ sender, receiver, onBack }) {
       receiver,
       message,
       image_url,
+      public_id,
     };
 
     socket.emit('send_message', msgData);
@@ -79,7 +76,6 @@ function ChatBox({ sender, receiver, onBack }) {
       ...prev,
       {
         ...msgData,
-        image_url: image_url ? `https://chat-app-4apm.onrender.com${image_url}` : '',
         timestamp: new Date().toISOString(),
       },
     ]);
@@ -112,6 +108,20 @@ function ChatBox({ sender, receiver, onBack }) {
     }
   };
 
+  const handleDownload = async (public_id) => {
+    try {
+      const res = await fetch(`https://chat-app-4apm.onrender.com/download-image?public_id=${public_id}`);
+      const data = await res.json();
+      if (data.download_url) {
+        window.open(data.download_url, '_blank');
+      } else {
+        alert('Failed to generate download link');
+      }
+    } catch (err) {
+      console.error('Download failed:', err);
+    }
+  };
+
   return (
     <div className="chatbox">
       <div className="chatbox-header">
@@ -125,15 +135,22 @@ function ChatBox({ sender, receiver, onBack }) {
             {msg.message && <p>{msg.message}</p>}
 
             {msg.image_url && (
-              <img
-                src={msg.image_url}
-                alt="shared"
-                className="chat-image"
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.style.display = 'none';
-                }}
-              />
+              <div className="image-container">
+                <img
+                  src={msg.image_url}
+                  alt="shared"
+                  className="chat-image"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.style.display = 'none';
+                  }}
+                />
+                {msg.public_id && (
+                  <button className="download-btn" onClick={() => handleDownload(msg.public_id)}>
+                    Download
+                  </button>
+                )}
+              </div>
             )}
 
             <span className="timestamp">{new Date(msg.timestamp).toLocaleTimeString()}</span>

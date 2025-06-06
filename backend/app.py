@@ -9,7 +9,6 @@ import os
 import cloudinary
 import cloudinary.uploader
 import uuid
-import time
 
 from models import db, Message
 from auth import auth_bp
@@ -17,7 +16,7 @@ from auth import auth_bp
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 
-# ✅ PostgreSQL database
+# ✅ PostgreSQL configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://chat_app_db_4lkr_user:QAmEWmOHpGElG2C0fZiVU67ZNeu1ZMhc@dpg-d11575ali9vc738dfifg-a/chat_app_db_4lkr'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -29,21 +28,16 @@ cloudinary.config(
     secure=True
 )
 
-# ✅ Enable CORS for frontend
 CORS(app, supports_credentials=True)
-
-# ✅ Initialize SocketIO
 socketio = SocketIO(app, cors_allowed_origins=["https://baatkarona.vercel.app"])
-
-# ✅ Initialize SQLAlchemy
 db.init_app(app)
 
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'}
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# ✅ Image Upload Route
+# ✅ Route: Upload Image to Cloudinary
 @app.route('/upload', methods=['POST'])
 def upload_file():
     if 'file' not in request.files:
@@ -55,18 +49,35 @@ def upload_file():
 
     if file and allowed_file(file.filename):
         try:
-            unique_id = str(uuid.uuid4())  # Unique public ID for each file
+            unique_id = str(uuid.uuid4())
             upload_result = cloudinary.uploader.upload(
                 file,
                 public_id=unique_id,
                 resource_type="image"
             )
-            secure_url = upload_result['secure_url']
-            return jsonify({'url': secure_url}), 200
+            return jsonify({
+                'url': upload_result['secure_url'],
+                'public_id': upload_result['public_id']
+            }), 200
         except Exception as e:
             return jsonify({'error': str(e)}), 500
 
     return jsonify({'error': 'Invalid file type'}), 400
+
+# ✅ Route: Get Download URL for a Cloudinary image
+@app.route('/download-image', methods=['GET'])
+def get_download_link():
+    public_id = request.args.get('public_id')
+    if not public_id:
+        return jsonify({'error': 'Public ID is required'}), 400
+
+    # Cloudinary transformation to force download
+    download_url = cloudinary.CloudinaryImage(public_id).build_url(
+        flags="attachment",
+        secure=True
+    )
+
+    return jsonify({'download_url': download_url})
 
 def get_room_name(user1, user2):
     return '_'.join(sorted([user1, user2]))
@@ -112,10 +123,9 @@ def get_messages(sender, receiver):
         } for msg in messages
     ])
 
-# ✅ Auth Blueprint
+# ✅ Auth blueprint registration
 app.register_blueprint(auth_bp, url_prefix='/auth')
 
-# ❌ DO NOT enable this in production
 @app.route('/reset-db')
 def reset_db():
     db.drop_all()
