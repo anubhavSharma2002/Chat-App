@@ -2,12 +2,19 @@ import React, { useState } from 'react';
 import { api } from '../api';
 
 function Register({ onLogin }) {
-  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
 
+  const isValidPhone = (number) => /^[6-9]\d{9}$/.test(number);
+
   const handleRegister = async () => {
+    if (!isValidPhone(phone)) {
+      alert('Enter a valid 10-digit phone number starting with 6-9');
+      return;
+    }
+
     try {
-      const res = await api.post('/auth/register', { email, password });
+      const res = await api.post('/auth/register', { email: phone, password });
       alert(res.data.message);
       onLogin();
     } catch (err) {
@@ -23,9 +30,10 @@ function Register({ onLogin }) {
     <div className="form-container">
       <h2>Register</h2>
       <input
-        placeholder="Email"
-        onChange={e => setEmail(e.target.value)}
+        placeholder="Phone Number"
+        onChange={e => setPhone(e.target.value)}
         onKeyDown={handleKey}
+        maxLength={10}
       />
       <input
         type="password"
