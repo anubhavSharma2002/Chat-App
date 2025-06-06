@@ -1,5 +1,4 @@
 import eventlet
-
 eventlet.monkey_patch()
 
 from flask import Flask, request, jsonify, send_from_directory
@@ -12,21 +11,20 @@ import os
 from models import db, Message  # Assuming Message model has image_url and timestamp
 from auth import auth_bp
 
-
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+
+# ✅ Use your PostgreSQL database URL
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://chat_app_db_4lkr_user:QAmEWmOHpGElG2C0fZiVU67ZNeu1ZMhc@dpg-d11575ali9vc738dfifg-a/chat_app_db_4lkr'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'uploads'
 
-# Enable CORS for your frontend domain with credentials support
 CORS(app, supports_credentials=True)
 
 socketio = SocketIO(app, cors_allowed_origins=["https://baatkarona.vercel.app"])
 
 db.init_app(app)
 
-# Ensure uploads directory exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
@@ -49,7 +47,6 @@ def upload_file():
 
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
-        # To avoid overwriting, you may want to add a unique prefix here, e.g. timestamp
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         return jsonify({'url': f'/uploads/{filename}'}), 200
 
@@ -82,10 +79,8 @@ def handle_message(data):
         'timestamp': new_msg.timestamp.isoformat()
     }, to=room, broadcast=True, include_self=False)
 
-
 @app.route('/messages/<sender>/<receiver>', methods=['GET'])
 def get_messages(sender, receiver):
-    room1 = get_room_name(sender, receiver)
     messages = Message.query.filter(
         ((Message.sender == sender) & (Message.receiver == receiver)) |
         ((Message.sender == receiver) & (Message.receiver == sender))
@@ -104,8 +99,9 @@ def get_messages(sender, receiver):
 # Register the auth blueprint at /auth
 app.register_blueprint(auth_bp, url_prefix='/auth')
 
-with app.app_context():
-        db.create_all()
+# ✅ DO NOT auto-reset database on every start
+# with app.app_context():
+#     db.create_all()
 
 @app.route('/reset-db')
 def reset_db():
@@ -115,4 +111,3 @@ def reset_db():
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
-
