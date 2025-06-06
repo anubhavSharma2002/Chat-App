@@ -111,7 +111,7 @@ function ChatBox({ sender, receiver, onBack }) {
   };
 
   const handleSelect = (id) => {
-    setSelectedMessageId(selectedMessageId === id ? null : id);
+    setSelectedMessageId((prev) => (prev === id ? null : id));
   };
 
   return (
@@ -122,40 +122,41 @@ function ChatBox({ sender, receiver, onBack }) {
       </div>
 
       <div className="chat-messages">
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`message ${msg.sender === sender ? 'sent' : 'received'} ${selectedMessageId === msg.id ? 'selected' : ''}`}
-            onClick={() => handleSelect(msg.id)}
-          >
-            {msg.message && <p>{msg.message}</p>}
+        {messages.map((msg) => {
+          const isSelected = selectedMessageId === msg.id;
+          const isSender = msg.sender === sender;
 
-            {msg.image_url && (
-              <div className="image-container">
-                <img
-                  src={msg.image_url}
-                  alt="shared"
-                  className="chat-image"
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.style.display = 'none';
-                  }}
-                />
-                {msg.public_id && (
-                  <button className="download-btn" onClick={() => handleDownload(msg.public_id)}>
-                    Download
-                  </button>
-                )}
-              </div>
-            )}
+          return (
+            <div
+              key={msg.id}
+              className={`message ${isSender ? 'sent' : 'received'} ${isSelected ? 'selected' : ''}`}
+              onClick={() => handleSelect(msg.id)}
+            >
+              {msg.message && <p>{msg.message}</p>}
 
-            <span className="timestamp">{new Date(msg.timestamp).toLocaleTimeString()}</span>
+              {msg.image_url && (
+                <div className="image-container">
+                  <img
+                    src={msg.image_url}
+                    alt="shared"
+                    className="chat-image"
+                  />
+                  {msg.public_id && (
+                    <button className="download-btn" onClick={() => handleDownload(msg.public_id)}>
+                      Download
+                    </button>
+                  )}
+                </div>
+              )}
 
-            {selectedMessageId === msg.id && msg.sender === sender && (
-              <button className="delete-btn" onClick={() => handleDelete(msg.id)}>Delete</button>
-            )}
-          </div>
-        ))}
+              <span className="timestamp">{new Date(msg.timestamp).toLocaleTimeString()}</span>
+
+              {isSender && isSelected && (
+                <button className="delete-btn" onClick={() => handleDelete(msg.id)}>Delete</button>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       <div className="chat-input">
