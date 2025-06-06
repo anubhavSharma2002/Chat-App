@@ -35,6 +35,11 @@ db.init_app(app)
 # Ensure uploads directory exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
+
+@app.before_first_request
+def initialize_database():
+    db.create_all()
+
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 def allowed_file(filename):
@@ -109,10 +114,6 @@ def get_messages(sender, receiver):
 
 # Register the auth blueprint at /auth
 app.register_blueprint(auth_bp, url_prefix='/auth')
-
-@app.before_first_request
-def initialize_database():
-    db.create_all()
 
 
 if __name__ == '__main__':
