@@ -36,7 +36,7 @@ db.init_app(app)
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 
-@app.before_first_request
+@app._got_first_request
 def initialize_database():
     db.create_all()
 
