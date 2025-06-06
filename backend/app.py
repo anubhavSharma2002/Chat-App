@@ -85,11 +85,6 @@ def handle_message(data):
         'timestamp': new_msg.timestamp.isoformat()
     }, to=room, broadcast=True, include_self=False)
 
-@app.route('/reset-db')
-def reset_db():
-    db.drop_all()
-    db.create_all()
-    return "Database reset successfully"
 
 @app.route('/messages/<sender>/<receiver>', methods=['GET'])
 def get_messages(sender, receiver):
@@ -111,6 +106,11 @@ def get_messages(sender, receiver):
 
 # Register the auth blueprint at /auth
 app.register_blueprint(auth_bp, url_prefix='/auth')
+
+@app.before_first_request
+def initialize_database():
+    db.create_all()
+
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
