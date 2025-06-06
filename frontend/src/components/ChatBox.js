@@ -9,7 +9,7 @@ function ChatBox({ sender, receiver, onBack }) {
   const [messages, setMessages] = useState([]);
   const [image, setImage] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
-  const [selectedMessages, setSelectedMessages] = useState([]);
+  const [selectedMessageId, setSelectedMessageId] = useState(null);
 
   useEffect(() => {
     socket.emit('join', { sender, receiver });
@@ -30,14 +30,13 @@ function ChatBox({ sender, receiver, onBack }) {
       setMessages((prev) => [...prev, data]);
     });
 
-    socket.on('message_deleted', ({ message_id }) => {
-      setMessages((prev) => prev.filter(msg => msg.id !== message_id));
-      setSelectedMessages(prev => prev.filter(id => id !== message_id));
+    socket.on('delete_message', (data) => {
+      setMessages((prev) => prev.filter((msg) => msg.id !== data.id));
     });
 
     return () => {
       socket.off('receive_message');
-      socket.off('message_deleted');
+      socket.off('delete_message');
     };
   }, [sender, receiver]);
 
@@ -84,19 +83,6 @@ function ChatBox({ sender, receiver, onBack }) {
     setPreviewUrl(null);
   };
 
-  const saveChatHistory = (partnerId) => {
-    const historyKey = `${sender}_chatHistory`;
-    const existing = JSON.parse(localStorage.getItem(historyKey)) || [];
-    if (!existing.includes(partnerId)) {
-      const updated = [...existing, partnerId];
-      localStorage.setItem(historyKey, JSON.stringify(updated));
-    }
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') sendMessage();
-  };
-
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -119,16 +105,13 @@ function ChatBox({ sender, receiver, onBack }) {
     }
   };
 
-  const toggleSelectMessage = (id) => {
-    setSelectedMessages(prev =>
-      prev.includes(id) ? prev.filter(msgId => msgId !== id) : [...prev, id]
-    );
+  const handleDelete = (id) => {
+    socket.emit('delete_message', { id });
+    setSelectedMessageId(null);
   };
 
-  const deleteSelectedMessages = () => {
-    selectedMessages.forEach(id => {
-      socket.emit('delete_message', { message_id: id });
-    });
+  const handleSelect = (id) => {
+    setSelectedMessageId(selectedMessageId === id ? null : id);
   };
 
   return (
@@ -136,19 +119,14 @@ function ChatBox({ sender, receiver, onBack }) {
       <div className="chatbox-header">
         <button className="back-btn" onClick={onBack}>← Back</button>
         <h2>Baat Karo Na</h2>
-        {selectedMessages.length > 0 && (
-          <button className="delete-btn" onClick={deleteSelectedMessages}>
-            Delete ({selectedMessages.length})
-          </button>
-        )}
       </div>
 
       <div className="chat-messages">
         {messages.map((msg) => (
           <div
             key={msg.id}
-            className={`message ${msg.sender === sender ? 'sent' : 'received'} ${selectedMessages.includes(msg.id) ? 'selected' : ''}`}
-            onClick={() => toggleSelectMessage(msg.id)}
+            className={`message ${msg.sender === sender ? 'sent' : 'received'} ${selectedMessageId === msg.id ? 'selected' : ''}`}
+            onClick={() => handleSelect(msg.id)}
           >
             {msg.message && <p>{msg.message}</p>}
 
@@ -172,6 +150,10 @@ function ChatBox({ sender, receiver, onBack }) {
             )}
 
             <span className="timestamp">{new Date(msg.timestamp).toLocaleTimeString()}</span>
+
+            {selectedMessageId === msg.id && msg.sender === sender && (
+              <button className="delete-btn" onClick={() => handleDelete(msg.id)}>Delete</button>
+            )}
           </div>
         ))}
       </div>
@@ -182,7 +164,7 @@ function ChatBox({ sender, receiver, onBack }) {
           placeholder="Type a message..."
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          onKeyDown={handleKeyDown}
+          onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
         />
         <input type="file" accept="image/*" onChange={handleImageChange} />
         {previewUrl && (
