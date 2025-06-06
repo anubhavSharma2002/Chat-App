@@ -123,6 +123,7 @@ function ChatBox({ sender, receiver, onBack }) {
         {messages.map((msg, index) => (
           <div key={index} className={`message ${msg.sender === sender ? 'sent' : 'received'}`}>
             {msg.message && <p>{msg.message}</p>}
+
             {msg.image_url && (
               <img
                 src={msg.image_url}
@@ -130,10 +131,11 @@ function ChatBox({ sender, receiver, onBack }) {
                 className="chat-image"
                 onError={(e) => {
                   e.target.onerror = null;
-                  e.target.src = '/broken-image.png';
+                  e.target.style.display = 'none';
                 }}
               />
             )}
+
             <span className="timestamp">{new Date(msg.timestamp).toLocaleTimeString()}</span>
           </div>
         ))}
