@@ -25,7 +25,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 cloudinary.config(
     cloud_name='dwxi8oubd',
     api_key='737445128586493',
-    api_secret='iyUN0_tytlInZ0oE5z1dxSRLwlc'
+    api_secret='iyUN0_tytlInZ0oE5z1dxSRLwlc',
+    secure=True
 )
 
 # ✅ Enable CORS for frontend
@@ -42,7 +43,7 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# ✅ Image Upload Route (with cache-busting)
+# ✅ Image Upload Route
 @app.route('/upload', methods=['POST'])
 def upload_file():
     if 'file' not in request.files:
@@ -58,13 +59,10 @@ def upload_file():
             upload_result = cloudinary.uploader.upload(
                 file,
                 public_id=unique_id,
-                resource_type="image",
-                invalidate=True
+                resource_type="image"
             )
             secure_url = upload_result['secure_url']
-            cache_busted_url = f"{secure_url}?v={int(time.time())}"
-
-            return jsonify({'url': cache_busted_url}), 200
+            return jsonify({'url': secure_url}), 200
         except Exception as e:
             return jsonify({'error': str(e)}), 500
 
