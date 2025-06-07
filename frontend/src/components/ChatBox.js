@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import io from 'socket.io-client';
 import './ChatBox.css';
-import { FaPaperPlane, FaPaperclip } from 'react-icons/fa';
+import { FaPaperPlane, FaPaperclip, FaSmile } from 'react-icons/fa';
+import EmojiPicker from 'emoji-picker-react';
 
 const socket = io('https://chat-app-4apm.onrender.com');
 
@@ -11,6 +12,9 @@ function ChatBox({ sender, receiver, onBack }) {
   const [image, setImage] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [selectedMessageId, setSelectedMessageId] = useState(null);
+  const [isTyping, setIsTyping] = useState(false);
+  const [partnerTyping, setPartnerTyping] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   useEffect(() => {
     socket.emit('join', { sender, receiver });
@@ -36,11 +40,22 @@ function ChatBox({ sender, receiver, onBack }) {
       if (selectedMessageId === data.message_id) setSelectedMessageId(null);
     });
 
+    socket.on('typing', (data) => {
+      if (data.sender === receiver) {
+        setPartnerTyping(data.isTyping);
+      }
+    });
+
     return () => {
       socket.off('receive_message');
       socket.off('message_deleted');
+      socket.off('typing');
     };
   }, [sender, receiver, selectedMessageId]);
+
+  useEffect(() => {
+    socket.emit('typing', { sender, receiver, isTyping });
+  }, [isTyping]);
 
   const sendMessage = async () => {
     if (!message.trim() && !image) return;
@@ -82,6 +97,7 @@ function ChatBox({ sender, receiver, onBack }) {
     setMessage('');
     setImage(null);
     setPreviewUrl(null);
+    setShowEmojiPicker(false);
   };
 
   const handleImageChange = (e) => {
@@ -121,6 +137,10 @@ function ChatBox({ sender, receiver, onBack }) {
     }
   };
 
+  const onEmojiClick = (emojiObject) => {
+    setMessage((prev) => prev + emojiObject.emoji);
+  };
+
   return (
     <div className="chatbox">
       <div className="chatbox-header">
@@ -136,18 +156,9 @@ function ChatBox({ sender, receiver, onBack }) {
             onClick={() => handleSelect(msg.id)}
           >
             {msg.message && <p>{msg.message}</p>}
-
             {msg.image_url && (
               <div className="image-container">
-                <img
-                  src={msg.image_url}
-                  alt="shared"
-                  className="chat-image"
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.style.display = 'none';
-                  }}
-                />
+                <img src={msg.image_url} alt="shared" className="chat-image" />
                 {msg.public_id && (
                   <button className="download-btn" onClick={(e) => { e.stopPropagation(); handleDownload(msg.public_id); }}>
                     Download
@@ -158,6 +169,7 @@ function ChatBox({ sender, receiver, onBack }) {
             <span className="timestamp">{new Date(msg.timestamp).toLocaleTimeString()}</span>
           </div>
         ))}
+        {partnerTyping && <div className="typing-indicator">Typing...</div>}
       </div>
 
       {previewUrl && (
@@ -166,21 +178,27 @@ function ChatBox({ sender, receiver, onBack }) {
         </div>
       )}
 
+      {showEmojiPicker && (
+        <div className="emoji-picker">
+          <EmojiPicker onEmojiClick={onEmojiClick} />
+        </div>
+      )}
+
       <div className="chat-input-bar">
-        <label htmlFor="file-input" className="attachment-icon">
-          <FaPaperclip />
-        </label>
+        <label htmlFor="file-input" className="attachment-icon"><FaPaperclip /></label>
         <input id="file-input" type="file" accept="image/*" onChange={handleImageChange} />
         <input
           type="text"
           placeholder="Type a message..."
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
+          onChange={(e) => {
+            setMessage(e.target.value);
+            setIsTyping(e.target.value.length > 0);
+          }}
           onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
         />
-        <button className="send-icon" onClick={sendMessage}>
-          <FaPaperPlane />
-        </button>
+        <button className="emoji-icon" onClick={() => setShowEmojiPicker((prev) => !prev)}><FaSmile /></button>
+        <button className="send-icon" onClick={sendMessage}><FaPaperPlane /></button>
       </div>
     </div>
   );

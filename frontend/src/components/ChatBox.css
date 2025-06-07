@@ -148,3 +148,81 @@
     padding: 8px;
   }
 }
+
+.chatbox {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  font-family: Arial, sans-serif;
+  position: relative;
+}
+
+.chatbox-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #4a90e2;
+  color: white;
+  padding: 10px;
+}
+
+.chat-messages {
+  flex: 1;
+  padding: 10px;
+  overflow-y: auto;
+  background: #f1f1f1;
+}
+
+.typing-indicator {
+  font-style: italic;
+  color: gray;
+  margin-top: 5px;
+}
+
+.chat-input-bar {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background: #fff;
+  border-top: 1px solid #ccc;
+}
+
+.chat-input-bar input[type="text"] {
+  flex: 1;
+  padding: 10px;
+  font-size: 16px;
+  margin: 0 8px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.chat-input-bar input[type="file"] {
+  display: none;
+}
+
+.attachment-icon,
+.send-icon,
+.emoji-icon {
+  font-size: 20px;
+  cursor: pointer;
+  color: #4a90e2;
+  background: none;
+  border: none;
+}
+
+.emoji-picker {
+  position: absolute;
+  bottom: 60px;
+  right: 10px;
+  z-index: 1000;
+}
+
+@media (max-width: 600px) {
+  .chatbox-header h2 {
+    font-size: 16px;
+  }
+
+  .chat-input-bar input[type="text"] {
+    font-size: 14px;
+  }
+}
