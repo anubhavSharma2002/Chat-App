@@ -24,7 +24,7 @@ function UserSelect({ userId, setChatWith, setScreen, onLogout }) {
       localStorage.setItem(`${userId}_chatHistory`, JSON.stringify(history));
     }
 
-    if (name && !names[chatUserId]) {
+    if (name) {
       names[chatUserId] = name;
       localStorage.setItem(`${userId}_contactNames`, JSON.stringify(names));
     }
@@ -42,7 +42,7 @@ function UserSelect({ userId, setChatWith, setScreen, onLogout }) {
     try {
       const res = await api.post('/auth/check-user', { email: otherId });
       if (res.data.exists) {
-        addToChatHistory(otherId);
+        addToChatHistory(otherId); // no name available here
         setChatWith(otherId);
         setScreen('chat');
       } else {
@@ -90,7 +90,6 @@ function UserSelect({ userId, setChatWith, setScreen, onLogout }) {
     <div className="user-select-container">
       <button className="logout-btn" onClick={onLogout}>Logout</button>
       <h2 className="heading">Start Chat</h2>
-
       <div className="input-row">
         <div className="input-icon-wrapper">
           <input
@@ -105,6 +104,7 @@ function UserSelect({ userId, setChatWith, setScreen, onLogout }) {
         <button className="chat-btn" onClick={handleStartChat}>Chat</button>
       </div>
 
+      {/* Recent Chats section moved up */}
       {chatHistory.length > 0 && (
         <div className="chat-history-table">
           <h3>Recent Chats</h3>
