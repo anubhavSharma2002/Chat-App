@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import io from 'socket.io-client';
 import './ChatBox.css';
+import { FaPaperPlane, FaPaperclip } from 'react-icons/fa';
 
 const socket = io('https://chat-app-4apm.onrender.com');
 
@@ -78,7 +79,6 @@ function ChatBox({ sender, receiver, onBack }) {
     };
 
     socket.emit('send_message', msgData);
-
     setMessage('');
     setImage(null);
     setPreviewUrl(null);
@@ -113,7 +113,6 @@ function ChatBox({ sender, receiver, onBack }) {
   };
 
   const handleSelect = (id) => {
-    // Only allow sender to select own messages for delete
     const selectedMsg = messages.find((msg) => msg.id === id);
     if (selectedMsg && selectedMsg.sender === sender) {
       setSelectedMessageId(selectedMessageId === id ? null : id);
@@ -126,7 +125,7 @@ function ChatBox({ sender, receiver, onBack }) {
     <div className="chatbox">
       <div className="chatbox-header">
         <button className="back-btn" onClick={onBack}>← Back</button>
-        <h2>Baat Karo Na</h2>
+        <h2>{receiver}</h2>
       </div>
 
       <div className="chat-messages">
@@ -156,13 +155,22 @@ function ChatBox({ sender, receiver, onBack }) {
                 )}
               </div>
             )}
-
             <span className="timestamp">{new Date(msg.timestamp).toLocaleTimeString()}</span>
           </div>
         ))}
       </div>
 
-      <div className="chat-input">
+      {previewUrl && (
+        <div className="image-preview">
+          <img src={previewUrl} alt="Preview" className="preview-img" />
+        </div>
+      )}
+
+      <div className="chat-input-bar">
+        <label htmlFor="file-input" className="attachment-icon">
+          <FaPaperclip />
+        </label>
+        <input id="file-input" type="file" accept="image/*" onChange={handleImageChange} />
         <input
           type="text"
           placeholder="Type a message..."
@@ -170,21 +178,9 @@ function ChatBox({ sender, receiver, onBack }) {
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
         />
-        <input type="file" accept="image/*" onChange={handleImageChange} />
-        {previewUrl && (
-          <div className="image-preview">
-            <img src={previewUrl} alt="Preview" className="preview-img" />
-          </div>
-        )}
-
-        <div className="button-group">
-          <button onClick={sendMessage}>Send</button>
-          {selectedMessageId && (
-            <button className="delete-common-btn" onClick={handleDelete}>
-              Delete Selected
-            </button>
-          )}
-        </div>
+        <button className="send-icon" onClick={sendMessage}>
+          <FaPaperPlane />
+        </button>
       </div>
     </div>
   );
