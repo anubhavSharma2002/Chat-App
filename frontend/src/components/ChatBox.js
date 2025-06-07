@@ -109,7 +109,8 @@ function ChatBox({ sender, receiver, onBack }) {
     }
   };
 
-  const handleDownload = async (public_id) => {
+  const handleImageClickToDownload = async (public_id) => {
+    if (!public_id) return;
     try {
       const res = await fetch(`https://chat-app-4apm.onrender.com/download-image?public_id=${public_id}`);
       const data = await res.json();
@@ -156,18 +157,16 @@ function ChatBox({ sender, receiver, onBack }) {
             {msg.message && <p>{msg.message}</p>}
             {msg.image_url && (
               <div className="image-container">
-                <img src={msg.image_url} alt="shared" className="chat-image" />
-                {msg.public_id && (
-                  <button
-                    className="download-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDownload(msg.public_id);
-                    }}
-                  >
-                    Download
-                  </button>
-                )}
+                <img
+                  src={msg.image_url}
+                  alt="shared"
+                  className="chat-image"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleImageClickToDownload(msg.public_id);
+                  }}
+                  title="Click to download"
+                />
               </div>
             )}
             <span className="timestamp">{new Date(msg.timestamp).toLocaleTimeString()}</span>
