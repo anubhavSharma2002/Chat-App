@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import io from 'socket.io-client';
 import './ChatBox.css';
 import { FaPaperPlane, FaPaperclip, FaSmile } from 'react-icons/fa';
@@ -15,6 +15,8 @@ function ChatBox({ sender, receiver, onBack }) {
   const [isTyping, setIsTyping] = useState(false);
   const [partnerTyping, setPartnerTyping] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
+  const bottomRef = useRef(null); // 🔽 Added ref to scroll to bottom
 
   useEffect(() => {
     socket.emit('join', { sender, receiver });
@@ -52,6 +54,13 @@ function ChatBox({ sender, receiver, onBack }) {
       socket.off('typing');
     };
   }, [sender, receiver, selectedMessageId]);
+
+  // 🔽 Scroll to bottom when messages change
+  useEffect(() => {
+    if (bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages]);
 
   useEffect(() => {
     socket.emit('typing', { sender, receiver, isTyping });
@@ -170,6 +179,7 @@ function ChatBox({ sender, receiver, onBack }) {
           </div>
         ))}
         {partnerTyping && <div className="typing-indicator">Typing...</div>}
+        <div ref={bottomRef}></div> {/* 🔽 Auto-scroll anchor */}
       </div>
 
       {previewUrl && (
