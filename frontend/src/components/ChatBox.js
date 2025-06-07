@@ -114,8 +114,16 @@ function ChatBox({ sender, receiver, onBack }) {
     try {
       const res = await fetch(`https://chat-app-4apm.onrender.com/download-image?public_id=${public_id}`);
       const data = await res.json();
-      if (data.download_url) window.open(data.download_url, '_blank');
-      else alert('Download failed');
+      if (data.download_url) {
+        const link = document.createElement('a');
+        link.href = data.download_url;
+        link.download = `image_${public_id}.jpg`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else {
+        alert('Download failed');
+      }
     } catch (err) {
       console.error('Download failed:', err);
     }
