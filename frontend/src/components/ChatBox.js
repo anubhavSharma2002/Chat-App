@@ -16,13 +16,11 @@ function ChatBox({ sender, receiver, onBack }) {
   const [partnerTyping, setPartnerTyping] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [contactName, setContactName] = useState('');
-
   const bottomRef = useRef(null);
 
   useEffect(() => {
-    // 👇 Fetch contact name from localStorage
     const names = JSON.parse(localStorage.getItem(`${sender}_contactNames`)) || {};
-    setContactName(names[receiver] || receiver); // fallback to phone number
+    setContactName(names[receiver] || receiver);
 
     socket.emit('join', { sender, receiver });
 
@@ -61,9 +59,7 @@ function ChatBox({ sender, receiver, onBack }) {
   }, [sender, receiver, selectedMessageId]);
 
   useEffect(() => {
-    if (bottomRef.current) {
-      bottomRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   useEffect(() => {
@@ -73,8 +69,7 @@ function ChatBox({ sender, receiver, onBack }) {
   const sendMessage = async () => {
     if (!message.trim() && !image) return;
 
-    let image_url = '';
-    let public_id = '';
+    let image_url = '', public_id = '';
 
     if (image) {
       const formData = new FormData();
@@ -98,14 +93,7 @@ function ChatBox({ sender, receiver, onBack }) {
       }
     }
 
-    const msgData = {
-      sender,
-      receiver,
-      message,
-      image_url,
-      public_id,
-    };
-
+    const msgData = { sender, receiver, message, image_url, public_id };
     socket.emit('send_message', msgData);
     setMessage('');
     setImage(null);
@@ -125,11 +113,8 @@ function ChatBox({ sender, receiver, onBack }) {
     try {
       const res = await fetch(`https://chat-app-4apm.onrender.com/download-image?public_id=${public_id}`);
       const data = await res.json();
-      if (data.download_url) {
-        window.open(data.download_url, '_blank');
-      } else {
-        alert('Failed to generate download link');
-      }
+      if (data.download_url) window.open(data.download_url, '_blank');
+      else alert('Download failed');
     } catch (err) {
       console.error('Download failed:', err);
     }
@@ -142,12 +127,9 @@ function ChatBox({ sender, receiver, onBack }) {
   };
 
   const handleSelect = (id) => {
-    const selectedMsg = messages.find((msg) => msg.id === id);
-    if (selectedMsg && selectedMsg.sender === sender) {
+    const msg = messages.find((m) => m.id === id);
+    if (msg && msg.sender === sender)
       setSelectedMessageId(selectedMessageId === id ? null : id);
-    } else {
-      setSelectedMessageId(null);
-    }
   };
 
   const onEmojiClick = (emojiObject) => {
@@ -159,6 +141,9 @@ function ChatBox({ sender, receiver, onBack }) {
       <div className="chatbox-header">
         <button className="back-btn" onClick={onBack}>← Back</button>
         <h2>{contactName}</h2>
+        {selectedMessageId && (
+          <button className="delete-btn" onClick={handleDelete}>🗑️ Delete</button>
+        )}
       </div>
 
       <div className="chat-messages">
@@ -187,7 +172,7 @@ function ChatBox({ sender, receiver, onBack }) {
       </div>
 
       {previewUrl && (
-        <div className="image-preview">
+        <div className="image-preview" onClick={() => { setPreviewUrl(null); setImage(null); }}>
           <img src={previewUrl} alt="Preview" className="preview-img" />
         </div>
       )}

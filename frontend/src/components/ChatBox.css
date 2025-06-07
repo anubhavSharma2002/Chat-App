@@ -37,6 +37,7 @@
   border-radius: 10px;
   max-width: 75%;
   word-wrap: break-word;
+  word-break: break-word;
 }
 
 .message.sent {
@@ -72,6 +73,10 @@
   cursor: pointer;
 }
 
+.download-btn:hover {
+  background-color: #1976d2;
+}
+
 .timestamp {
   display: block;
   font-size: 10px;
@@ -103,10 +108,6 @@
   gap: 8px;
 }
 
-.chat-input-bar input[type="file"] {
-  display: none;
-}
-
 .chat-input-bar input[type="text"] {
   flex: 1;
   padding: 10px 12px;
@@ -114,86 +115,6 @@
   border-radius: 25px;
   border: 1px solid #ccc;
   outline: none;
-}
-
-.attachment-icon {
-  font-size: 18px;
-  color: #555;
-  cursor: pointer;
-}
-
-.send-icon {
-  background: #4a90e2;
-  color: white;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-@media (max-width: 600px) {
-  .chatbox-header h2 {
-    font-size: 16px;
-  }
-
-  .chat-input-bar input[type="text"] {
-    font-size: 14px;
-  }
-
-  .send-icon {
-    padding: 8px;
-  }
-}
-
-.chatbox {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  font-family: Arial, sans-serif;
-  position: relative;
-}
-
-.chatbox-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #4a90e2;
-  color: white;
-  padding: 10px;
-}
-
-.chat-messages {
-  flex: 1;
-  padding: 10px;
-  overflow-y: auto;
-  background: #f1f1f1;
-}
-
-.typing-indicator {
-  font-style: italic;
-  color: gray;
-  margin-top: 5px;
-}
-
-.chat-input-bar {
-  display: flex;
-  align-items: center;
-  padding: 10px;
-  background: #fff;
-  border-top: 1px solid #ccc;
-}
-
-.chat-input-bar input[type="text"] {
-  flex: 1;
-  padding: 10px;
-  font-size: 16px;
-  margin: 0 8px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
 }
 
 .chat-input-bar input[type="file"] {
@@ -208,6 +129,22 @@
   color: #4a90e2;
   background: none;
   border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.send-icon {
+  background: #4a90e2;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 50%;
+}
+
+.typing-indicator {
+  font-style: italic;
+  color: gray;
+  margin-top: 5px;
 }
 
 .emoji-picker {
@@ -225,4 +162,12 @@
   .chat-input-bar input[type="text"] {
     font-size: 14px;
   }
+
+  .send-icon {
+    padding: 8px;
+  }
+}
+.chatbox-header h2 {
+  margin: 0;
+  font-size: 18px;
 }
