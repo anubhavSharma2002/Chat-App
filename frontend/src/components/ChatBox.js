@@ -158,7 +158,13 @@ function ChatBox({ sender, receiver, onBack }) {
               <div className="image-container">
                 <img src={msg.image_url} alt="shared" className="chat-image" />
                 {msg.public_id && (
-                  <button className="download-btn" onClick={(e) => { e.stopPropagation(); handleDownload(msg.public_id); }}>
+                  <button
+                    className="download-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDownload(msg.public_id);
+                    }}
+                  >
                     Download
                   </button>
                 )}

@@ -171,3 +171,22 @@
   margin: 0;
   font-size: 18px;
 }
+
+.download-btn {
+  margin-top: 6px;
+  padding: 6px 12px;
+  background-color: #2196f3;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  display: inline-block;
+  text-align: center;
+  text-decoration: none;
+  transition: background-color 0.3s ease;
+}
+
+.download-btn:hover {
+  background-color: #1976d2;
+}
