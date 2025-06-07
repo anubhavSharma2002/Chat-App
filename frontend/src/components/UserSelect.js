@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { api } from '../api';
 import { FaBook } from 'react-icons/fa';
 import './UserSelect.css';
+import io from 'socket.io-client';
+
+const socket = io('https://chat-app-4apm.onrender.com');
 
 function UserSelect({ userId, setChatWith, setScreen, onLogout }) {
   const [otherId, setOtherId] = useState('');
@@ -13,6 +16,16 @@ function UserSelect({ userId, setChatWith, setScreen, onLogout }) {
     const names = JSON.parse(localStorage.getItem(`${userId}_contactNames`)) || {};
     setChatHistory(history);
     setContactNames(names);
+
+    socket.on('receive-message', (data) => {
+      if (data.receiver === userId) {
+        addToChatHistory(data.sender);
+      }
+    });
+
+    return () => {
+      socket.off('receive-message');
+    };
   }, [userId]);
 
   const addToChatHistory = (chatUserId, name = '') => {
@@ -20,16 +33,16 @@ function UserSelect({ userId, setChatWith, setScreen, onLogout }) {
     let names = JSON.parse(localStorage.getItem(`${userId}_contactNames`)) || {};
 
     if (!history.includes(chatUserId)) {
-      history.push(chatUserId);
+      history.unshift(chatUserId); // put most recent chat on top
       localStorage.setItem(`${userId}_chatHistory`, JSON.stringify(history));
     }
 
-    if (name) {
+    if (name && !names[chatUserId]) {
       names[chatUserId] = name;
       localStorage.setItem(`${userId}_contactNames`, JSON.stringify(names));
     }
 
-    setChatHistory(history);
+    setChatHistory([...new Set(history)]);
     setContactNames(names);
   };
 
@@ -42,7 +55,7 @@ function UserSelect({ userId, setChatWith, setScreen, onLogout }) {
     try {
       const res = await api.post('/auth/check-user', { email: otherId });
       if (res.data.exists) {
-        addToChatHistory(otherId); // no name available here
+        addToChatHistory(otherId);
         setChatWith(otherId);
         setScreen('chat');
       } else {
@@ -104,7 +117,6 @@ function UserSelect({ userId, setChatWith, setScreen, onLogout }) {
         <button className="chat-btn" onClick={handleStartChat}>Chat</button>
       </div>
 
-      {/* Recent Chats section moved up */}
       {chatHistory.length > 0 && (
         <div className="chat-history-table">
           <h3>Recent Chats</h3>
