@@ -10,16 +10,27 @@ function UserSelect({ userId, setChatWith, setScreen, onLogout }) {
 
   useEffect(() => {
     const history = JSON.parse(localStorage.getItem(`${userId}_chatHistory`)) || [];
+    const names = JSON.parse(localStorage.getItem(`${userId}_contactNames`)) || {};
     setChatHistory(history);
+    setContactNames(names);
   }, [userId]);
 
-  const addToChatHistory = (chatUserId) => {
+  const addToChatHistory = (chatUserId, name = '') => {
     let history = JSON.parse(localStorage.getItem(`${userId}_chatHistory`)) || [];
+    let names = JSON.parse(localStorage.getItem(`${userId}_contactNames`)) || {};
+
     if (!history.includes(chatUserId)) {
       history.push(chatUserId);
       localStorage.setItem(`${userId}_chatHistory`, JSON.stringify(history));
-      setChatHistory(history);
     }
+
+    if (name && !names[chatUserId]) {
+      names[chatUserId] = name;
+      localStorage.setItem(`${userId}_contactNames`, JSON.stringify(names));
+    }
+
+    setChatHistory(history);
+    setContactNames(names);
   };
 
   const handleStartChat = async () => {
@@ -27,6 +38,7 @@ function UserSelect({ userId, setChatWith, setScreen, onLogout }) {
       alert('Please enter a valid 10-digit phone number.');
       return;
     }
+
     try {
       const res = await api.post('/auth/check-user', { email: otherId });
       if (res.data.exists) {
@@ -51,14 +63,13 @@ function UserSelect({ userId, setChatWith, setScreen, onLogout }) {
         const props = ['tel', 'name'];
         const opts = { multiple: false };
         const contacts = await navigator.contacts.select(props, opts);
-        const phoneNumber = contacts[0]?.tel?.[0]?.replace(/\D/g, '').slice(-10);
-        const name = contacts[0]?.name?.[0];
+        const contact = contacts[0];
+        const phoneNumber = contact?.tel?.[0]?.replace(/\D/g, '').slice(-10);
+        const name = contact?.name?.[0];
 
         if (phoneNumber && /^[6-9]\d{9}$/.test(phoneNumber)) {
           setOtherId(phoneNumber);
-          if (name) {
-            setContactNames(prev => ({ ...prev, [phoneNumber]: name }));
-          }
+          addToChatHistory(phoneNumber, name || '');
         } else {
           alert('Selected contact does not have a valid 10-digit mobile number.');
         }
@@ -79,6 +90,7 @@ function UserSelect({ userId, setChatWith, setScreen, onLogout }) {
     <div className="user-select-container">
       <button className="logout-btn" onClick={onLogout}>Logout</button>
       <h2 className="heading">Start Chat</h2>
+
       <div className="input-row">
         <div className="input-icon-wrapper">
           <input
