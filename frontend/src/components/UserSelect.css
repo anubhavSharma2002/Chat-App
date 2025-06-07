@@ -102,7 +102,7 @@
 
 .chat-history-table tr {
   cursor: pointer;
-  transition: background 0.3s;
+  transition: background 0.4s;
 }
 
 .chat-history-table tr:hover {
