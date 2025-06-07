@@ -63,18 +63,23 @@ def upload_file():
 
     return jsonify({'error': 'Invalid file type'}), 400
 
-@app.route('/download-image', methods=['GET'])
-def get_download_link():
+@app.route('/download-image')
+def download_image():
     public_id = request.args.get('public_id')
     if not public_id:
-        return jsonify({'error': 'Public ID is required'}), 400
+        return jsonify({'error': 'Missing public_id'}), 400
 
-    download_url = cloudinary.CloudinaryImage(public_id).build_url(
-        flags="attachment",
-        secure=True
-    )
-
-    return jsonify({'download_url': download_url})
+    try:
+        url, _ = cloudinary.utils.cloudinary_url(
+            public_id,
+            resource_type='image',
+            type='upload',
+            secure=True,
+            flags='attachment'  # Forces download
+        )
+        return jsonify({'download_url': url})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 def get_room_name(user1, user2):
     return '_'.join(sorted([user1, user2]))
