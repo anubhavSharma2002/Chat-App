@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../api';
+import { FaBook } from 'react-icons/fa';
+import './UserSelect.css';
 
 function UserSelect({ userId, setChatWith, setScreen, onLogout }) {
   const [otherId, setOtherId] = useState('');
@@ -42,11 +44,6 @@ function UserSelect({ userId, setChatWith, setScreen, onLogout }) {
     if (e.key === 'Enter') handleStartChat();
   };
 
-  const handleChatHistoryClick = (id) => {
-    setChatWith(id);
-    setScreen('chat');
-  };
-
   const handlePickContact = async () => {
     if ('contacts' in navigator && 'ContactsManager' in window) {
       try {
@@ -67,37 +64,48 @@ function UserSelect({ userId, setChatWith, setScreen, onLogout }) {
     }
   };
 
+  const handleChatHistoryClick = (id) => {
+    setChatWith(id);
+    setScreen('chat');
+  };
+
   return (
-    <div className="form-container">
-      <h2>Start Chat</h2>
+    <div className="user-select-container">
+      <button className="logout-btn" onClick={onLogout}>Logout</button>
+      <h2 className="heading">Start Chat</h2>
+      <div className="input-row">
+        <div className="input-icon-wrapper">
+          <input
+            placeholder="Enter 10-digit phone number"
+            value={otherId}
+            onChange={e => setOtherId(e.target.value)}
+            onKeyDown={handleKey}
+            maxLength={10}
+          />
+          <FaBook className="icon" onClick={handlePickContact} />
+        </div>
+        <button className="chat-btn" onClick={handleStartChat}>Chat</button>
+      </div>
 
       {chatHistory.length > 0 && (
-        <>
+        <div className="chat-history-table">
           <h3>Recent Chats</h3>
-          <ul className="chat-history-list">
-            {chatHistory.map((id) => (
-              <li
-                key={id}
-                onClick={() => handleChatHistoryClick(id)}
-                className="chat-history-item"
-              >
-                {id}
-              </li>
-            ))}
-          </ul>
-        </>
+          <table>
+            <thead>
+              <tr>
+                <th>Phone Number</th>
+              </tr>
+            </thead>
+            <tbody>
+              {chatHistory.map((id) => (
+                <tr key={id} onClick={() => handleChatHistoryClick(id)}>
+                  <td>{id}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
-
-      <input
-        placeholder="Enter 10-digit phone number"
-        value={otherId}
-        onChange={e => setOtherId(e.target.value)}
-        onKeyDown={handleKey}
-        maxLength={10}
-      />
-      <button onClick={handleStartChat}>Chat</button>
-      <button onClick={handlePickContact}>Pick from Contacts</button>
-      <button onClick={onLogout}>Logout</button>
     </div>
   );
 }
