@@ -1,35 +1,116 @@
-.login-container {
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: #e0e7ef;
+}
+
+.form-container {
+  width: 90%;
   max-width: 400px;
-  margin: 50px auto;
-  padding: 20px;
-  border: 2px solid #ccc;
-  border-radius: 12px;
-  text-align: center;
-  background-color: #f9f9f9;
+  height: 92vh;
+  margin: 20px auto;
+  padding: 30px 20px;
+  background: linear-gradient(145deg, #d7dde8, #f5f8fb); /* Metallic feel */
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
-.login-container h2 {
+.heading {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 30px;
+  color: #6a11cb;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.heading::before {
+  content: '💬';
+  font-size: 30px;
+}
+
+h2 {
+  font-size: 20px;
   margin-bottom: 20px;
+  color: #2d3436;
 }
 
-.login-container input {
+input {
   width: 100%;
+  padding: 12px;
   margin: 10px 0;
-  padding: 10px;
-  border-radius: 6px;
-  border: 1px solid #aaa;
+  border-radius: 10px;
+  border: 1.5px solid #6c5ce7;
+  background-color: #ffffff;
+  font-size: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: border-color 0.3s ease;
 }
 
-.login-container button {
-  margin: 10px 5px;
-  padding: 10px 20px;
+input:focus {
+  border-color: #341f97;
+  outline: none;
+}
+
+.button-group {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+button {
+  padding: 12px;
   border: none;
-  border-radius: 6px;
-  background-color: #007bff;
-  color: white;
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 15px;
+  color: #fff;
   cursor: pointer;
+  transition: transform 0.2s ease;
+  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.15);
 }
 
-.login-container button:hover {
-  background-color: #0056b3;
+button:hover {
+  transform: scale(1.03);
+}
+
+.login-btn {
+  background: linear-gradient(to right, #6a11cb, #2575fc);
+}
+
+.register-btn {
+  background: linear-gradient(to right, #00c6ff, #0072ff);
+}
+
+.forgot-btn {
+  background: linear-gradient(to right, #7f00ff, #e100ff);
+}
+
+/* Responsive Mobile Tweaks */
+@media screen and (max-width: 480px) {
+  .form-container {
+    padding: 20px 15px;
+    height: auto;
+  }
+
+  .heading {
+    font-size: 24px;
+  }
+
+  input {
+    font-size: 15px;
+  }
+
+  button {
+    font-size: 14px;
+    padding: 10px;
+  }
 }

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { api } from '../api';
+import './Login.css';
 
 function Login({ onLogin, onSwitch, onForgot }) {
   const [phone, setPhone] = useState('');
@@ -41,9 +42,11 @@ function Login({ onLogin, onSwitch, onForgot }) {
         onChange={e => setPassword(e.target.value)}
         onKeyDown={handleKey}
       />
-      <button onClick={handleLogin}>Login</button>
-      <button onClick={onSwitch}>Register</button>
-      <button onClick={onForgot}>Forgot Password?</button>
+      <div className="button-group">
+        <button onClick={handleLogin} className="login-btn">Login</button>
+        <button onClick={onSwitch} className="register-btn">Register</button>
+        <button onClick={onForgot} className="forgot-btn">Forgot Password?</button>
+      </div>
     </div>
   );
 }
