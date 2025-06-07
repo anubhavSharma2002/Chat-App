@@ -6,6 +6,7 @@ import './UserSelect.css';
 function UserSelect({ userId, setChatWith, setScreen, onLogout }) {
   const [otherId, setOtherId] = useState('');
   const [chatHistory, setChatHistory] = useState([]);
+  const [contactNames, setContactNames] = useState({});
 
   useEffect(() => {
     const history = JSON.parse(localStorage.getItem(`${userId}_chatHistory`)) || [];
@@ -47,12 +48,17 @@ function UserSelect({ userId, setChatWith, setScreen, onLogout }) {
   const handlePickContact = async () => {
     if ('contacts' in navigator && 'ContactsManager' in window) {
       try {
-        const props = ['tel'];
+        const props = ['tel', 'name'];
         const opts = { multiple: false };
         const contacts = await navigator.contacts.select(props, opts);
         const phoneNumber = contacts[0]?.tel?.[0]?.replace(/\D/g, '').slice(-10);
+        const name = contacts[0]?.name?.[0];
+
         if (phoneNumber && /^[6-9]\d{9}$/.test(phoneNumber)) {
           setOtherId(phoneNumber);
+          if (name) {
+            setContactNames(prev => ({ ...prev, [phoneNumber]: name }));
+          }
         } else {
           alert('Selected contact does not have a valid 10-digit mobile number.');
         }
@@ -93,13 +99,13 @@ function UserSelect({ userId, setChatWith, setScreen, onLogout }) {
           <table>
             <thead>
               <tr>
-                <th>Phone Number</th>
+                <th>Contact</th>
               </tr>
             </thead>
             <tbody>
               {chatHistory.map((id) => (
                 <tr key={id} onClick={() => handleChatHistoryClick(id)}>
-                  <td>{id}</td>
+                  <td>{contactNames[id] || id}</td>
                 </tr>
               ))}
             </tbody>
