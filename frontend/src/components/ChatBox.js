@@ -1,177 +1,218 @@
 import React, { useEffect, useRef, useState } from 'react';
 import io from 'socket.io-client';
 import './ChatBox.css';
-import { FaPaperPlane, FaPaperclip, FaArrowLeft, FaCheck, FaCheckDouble } from 'react-icons/fa';
+import { FaPaperPlane, FaPaperclip, FaSmile } from 'react-icons/fa';
+import EmojiPicker from 'emoji-picker-react';
 
 const socket = io('https://chat-app-4apm.onrender.com');
-
-const formatTimestampIST = (isoTimestamp) => {
-  const date = new Date(isoTimestamp);
-  const istDate = new Date(date.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
-  const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
-  const isToday = istDate.toDateString() === now.toDateString();
-
-  const timeStr = istDate.toLocaleTimeString("en-IN", {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  });
-
-  if (isToday) {
-    return `Today at ${timeStr}`;
-  } else {
-    const dateStr = istDate.toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
-    return `${dateStr} at ${timeStr}`;
-  }
-};
 
 function ChatBox({ sender, receiver, onBack }) {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
-  const [contactNames, setContactNames] = useState({});
+  const [image, setImage] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [selectedMessageId, setSelectedMessageId] = useState(null);
   const [isTyping, setIsTyping] = useState(false);
-  const [notification, setNotification] = useState(false);
-  const messagesEndRef = useRef(null);
+  const [partnerTyping, setPartnerTyping] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [contactName, setContactName] = useState('');
+
+  const bottomRef = useRef(null);
 
   useEffect(() => {
-    const storedNames = JSON.parse(localStorage.getItem(`${sender}_contactNames`)) || {};
-    setContactNames(storedNames);
-  }, [sender]);
+    // 👇 Fetch contact name from localStorage
+    const names = JSON.parse(localStorage.getItem(`${sender}_contactNames`)) || {};
+    setContactName(names[receiver] || receiver); // fallback to phone number
 
-  useEffect(() => {
     socket.emit('join', { sender, receiver });
 
-    socket.on('receive-message', (data) => {
-      setMessages(prev => [...prev, { ...data, received: true }]);
-      setNotification(true);
+    const fetchMessages = async () => {
+      try {
+        const res = await fetch(`https://chat-app-4apm.onrender.com/messages/${sender}/${receiver}`);
+        const data = await res.json();
+        setMessages(data);
+      } catch (err) {
+        console.error('Failed to load messages:', err);
+      }
+    };
+
+    fetchMessages();
+
+    socket.on('receive_message', (data) => {
+      setMessages((prev) => [...prev, data]);
     });
 
-    socket.on('typing', (status) => {
-      setIsTyping(status);
+    socket.on('message_deleted', (data) => {
+      setMessages((prev) => prev.filter((msg) => msg.id !== data.message_id));
+      if (selectedMessageId === data.message_id) setSelectedMessageId(null);
     });
 
-    socket.on('seen-update', () => {
-      setMessages(prev =>
-        prev.map(msg =>
-          msg.sender === sender ? { ...msg, seen: true } : msg
-        )
-      );
+    socket.on('typing', (data) => {
+      if (data.sender === receiver) {
+        setPartnerTyping(data.isTyping);
+      }
     });
 
     return () => {
-      socket.off('receive-message');
+      socket.off('receive_message');
+      socket.off('message_deleted');
       socket.off('typing');
-      socket.off('seen-update');
     };
-  }, [sender, receiver]);
+  }, [sender, receiver, selectedMessageId]);
 
   useEffect(() => {
-    scrollToBottom();
-    if (notification) {
-      setTimeout(() => setNotification(false), 2000);
+    if (bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]);
 
-  const handleSend = () => {
-    if (!message.trim()) return;
-    const newMsg = {
+  useEffect(() => {
+    socket.emit('typing', { sender, receiver, isTyping });
+  }, [isTyping]);
+
+  const sendMessage = async () => {
+    if (!message.trim() && !image) return;
+
+    let image_url = '';
+    let public_id = '';
+
+    if (image) {
+      const formData = new FormData();
+      formData.append('file', image);
+      try {
+        const res = await fetch('https://chat-app-4apm.onrender.com/upload', {
+          method: 'POST',
+          body: formData,
+        });
+        const data = await res.json();
+        if (data.url) {
+          image_url = data.url;
+          public_id = data.public_id;
+        } else {
+          alert('Image upload failed');
+          return;
+        }
+      } catch (err) {
+        console.error('Image upload error:', err);
+        return;
+      }
+    }
+
+    const msgData = {
       sender,
       receiver,
-      content: message,
-      timestamp: new Date().toISOString(),
-      seen: false,
+      message,
+      image_url,
+      public_id,
     };
-    socket.emit('send-message', newMsg);
-    setMessages(prev => [...prev, newMsg]);
+
+    socket.emit('send_message', msgData);
     setMessage('');
+    setImage(null);
+    setPreviewUrl(null);
+    setShowEmojiPicker(false);
   };
 
-  const handleTyping = (e) => {
-    setMessage(e.target.value);
-    socket.emit('typing', { to: receiver, typing: true });
-    setTimeout(() => socket.emit('typing', { to: receiver, typing: false }), 1000);
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImage(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
   };
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const handleDownload = async (public_id) => {
+    try {
+      const res = await fetch(`https://chat-app-4apm.onrender.com/download-image?public_id=${public_id}`);
+      const data = await res.json();
+      if (data.download_url) {
+        window.open(data.download_url, '_blank');
+      } else {
+        alert('Failed to generate download link');
+      }
+    } catch (err) {
+      console.error('Download failed:', err);
+    }
   };
 
-  const getContactName = () => contactNames[receiver] || receiver;
+  const handleDelete = () => {
+    if (!selectedMessageId) return;
+    socket.emit('delete_message', { message_id: selectedMessageId });
+    setSelectedMessageId(null);
+  };
+
+  const handleSelect = (id) => {
+    const selectedMsg = messages.find((msg) => msg.id === id);
+    if (selectedMsg && selectedMsg.sender === sender) {
+      setSelectedMessageId(selectedMessageId === id ? null : id);
+    } else {
+      setSelectedMessageId(null);
+    }
+  };
+
+  const onEmojiClick = (emojiObject) => {
+    setMessage((prev) => prev + emojiObject.emoji);
+  };
 
   return (
-    <div className="chatbox-container">
+    <div className="chatbox">
       <div className="chatbox-header">
-        <button onClick={onBack}><FaArrowLeft /></button>
-        <div className="header-info">
-          <span className="chat-name">{getContactName()}</span>
-          {notification && <span className="notification-dot" />}
-        </div>
+        <button className="back-btn" onClick={onBack}>← Back</button>
+        <h2>{contactName}</h2>
       </div>
 
-      <div className="chatbox-messages">
-        {messages.map((msg, index) => (
+      <div className="chat-messages">
+        {messages.map((msg) => (
           <div
-            key={index}
-            className={`message-bubble ${msg.sender === sender ? 'sent' : 'received'}`}
+            key={msg.id}
+            className={`message ${msg.sender === sender ? 'sent' : 'received'} ${selectedMessageId === msg.id ? 'selected' : ''}`}
+            onClick={() => handleSelect(msg.id)}
           >
-            {msg.content.startsWith('data:image') ? (
-              <img src={msg.content} alt="sent" className="image-message" />
-            ) : (
-              <span>{msg.content}</span>
+            {msg.message && <p>{msg.message}</p>}
+            {msg.image_url && (
+              <div className="image-container">
+                <img src={msg.image_url} alt="shared" className="chat-image" />
+                {msg.public_id && (
+                  <button className="download-btn" onClick={(e) => { e.stopPropagation(); handleDownload(msg.public_id); }}>
+                    Download
+                  </button>
+                )}
+              </div>
             )}
-            <div className="message-info">
-              <span className="timestamp">{formatTimestampIST(msg.timestamp)}</span>
-              {msg.sender === sender && (
-                <span className="status-icon">
-                  {msg.seen ? <FaCheckDouble color="blue" /> : <FaCheck />}
-                </span>
-              )}
-            </div>
+            <span className="timestamp">{new Date(msg.timestamp).toLocaleTimeString()}</span>
           </div>
         ))}
-        {isTyping && <div className="typing-indicator">Typing...</div>}
-        <div ref={messagesEndRef} />
+        {partnerTyping && <div className="typing-indicator">Typing...</div>}
+        <div ref={bottomRef}></div>
       </div>
 
-      <div className="chatbox-input">
+      {previewUrl && (
+        <div className="image-preview">
+          <img src={previewUrl} alt="Preview" className="preview-img" />
+        </div>
+      )}
+
+      {showEmojiPicker && (
+        <div className="emoji-picker">
+          <EmojiPicker onEmojiClick={onEmojiClick} />
+        </div>
+      )}
+
+      <div className="chat-input-bar">
+        <label htmlFor="file-input" className="attachment-icon"><FaPaperclip /></label>
+        <input id="file-input" type="file" accept="image/*" onChange={handleImageChange} />
         <input
           type="text"
-          placeholder="Type a message"
+          placeholder="Type a message..."
           value={message}
-          onChange={handleTyping}
-          onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-        />
-        <label htmlFor="file-upload">
-          <FaPaperclip className="icon" />
-        </label>
-        <input
-          id="file-upload"
-          type="file"
-          accept="image/*"
-          style={{ display: 'none' }}
           onChange={(e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = () => {
-              const newMsg = {
-                sender,
-                receiver,
-                content: reader.result,
-                timestamp: new Date().toISOString(),
-                seen: false,
-              };
-              socket.emit('send-message', newMsg);
-              setMessages(prev => [...prev, newMsg]);
-            };
-            reader.readAsDataURL(file);
+            setMessage(e.target.value);
+            setIsTyping(e.target.value.length > 0);
           }}
+          onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
         />
-        <button onClick={handleSend}><FaPaperPlane /></button>
+        <button className="emoji-icon" onClick={() => setShowEmojiPicker((prev) => !prev)}><FaSmile /></button>
+        <button className="send-icon" onClick={sendMessage}><FaPaperPlane /></button>
       </div>
     </div>
   );
