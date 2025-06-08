@@ -2,6 +2,8 @@
   max-width: 420px;
   height: 90vh;
   margin: 30px auto;
+  width: 100%;
+  height: auto;
   padding: 20px 25px;
   border-radius: 20px;
   text-align: center;
@@ -144,3 +146,4 @@
   position: absolute;
   top: 1px;
 }
+

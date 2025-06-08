@@ -148,7 +148,9 @@ function ChatBox({ sender, receiver, onBack }) {
   return (
     <div className="chatbox">
       <div className="chatbox-header">
-        <button className="back-btn" onClick={onBack}>← Back</button>
+        <button className="back-btn" onClick={() => {
+          if (onBack) onBack();
+          }}>← Back</button>
         <h2>{contactName}</h2>
         {selectedMessageId && (
           <button className="delete-btn" onClick={handleDelete}>🗑️ Delete</button>

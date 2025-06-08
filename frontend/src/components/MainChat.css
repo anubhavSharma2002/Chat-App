@@ -1,0 +1,28 @@
+.main-chat-container {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.user-list-pane {
+  width: 320px;
+  min-width: 280px;
+  border-right: 1px solid #ddd;
+  overflow-y: auto;
+  background: #f9f9f9;
+}
+
+.chat-pane {
+  flex: 1;
+  background: #efefef;
+  position: relative;
+}
+
+.placeholder {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #777;
+  font-size: 18px;
+}
