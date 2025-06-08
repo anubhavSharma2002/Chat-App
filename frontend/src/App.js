@@ -77,7 +77,7 @@ function App() {
             />
           )}
           {screen === 'mainchat' && (
-            <MainChat userId={userId} onLogout={handleLogout} />
+            <MainChat userId={userId} onLogout={handleLogout} >Anubhav</MainChat>
           )}
 
         </>
