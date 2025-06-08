@@ -13,11 +13,13 @@ def register_options():
     response.headers.add("Access-Control-Allow-Credentials", "true")
     return response
 
+import traceback
+
 @auth_bp.route('/register', methods=['POST'])
 def register():
     try:
-        data = request.get_json()
-        email = data.get('phone')  # phone number as 'email'
+        data = request.get_json() or {}
+        email = data.get('phone')
         password = data.get('password')
         name = data.get('name')
 
@@ -35,7 +37,9 @@ def register():
         return jsonify({"success": True, "message": "Registered successfully"})
 
     except Exception as e:
+        print("Registration error:", traceback.format_exc())  # This will show in Render logs
         return jsonify({"success": False, "message": "Internal server error"}), 500
+
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
