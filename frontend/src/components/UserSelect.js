@@ -58,7 +58,7 @@ function UserSelect({ userId, setChatWith, setScreen, onLogout }) {
     try {
       const res = await api.post('/auth/check-user', { email: otherId });
       if (res.data.exists) {
-        addToChatHistory(otherId);
+        addToChatHistory(otherId, otherId);
         setChatWith(otherId);
         setScreen('chat');
       } else {
