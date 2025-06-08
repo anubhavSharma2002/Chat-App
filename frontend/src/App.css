@@ -3,13 +3,14 @@ body {
   margin: 0;
   background: linear-gradient(to bottom right, #f5f7fa, #c3cfe2);
   color: #333;
+  overflow-x: hidden;
 }
 
 .app-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 1rem;
+  padding: 1.5rem;
   min-height: 100vh;
   box-sizing: border-box;
 }
@@ -17,70 +18,90 @@ body {
 .form-container, .chat-container {
   width: 100%;
   max-width: 600px;
-  background: #fff;
+  background: #ffffff;
   border-radius: 20px;
   padding: 2rem;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   animation: fadeIn 0.4s ease-in-out;
+  transition: all 0.3s ease;
 }
 
 .heading {
-  font-size: 2rem;
+  font-size: 2.2rem;
   font-weight: bold;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
   color: #6a11cb;
   text-align: center;
 }
 
 input {
   width: 100%;
-  padding: 12px;
+  padding: 12px 15px;
   margin: 10px 0;
   border: 2px solid #9d50bb;
-  border-radius: 10px;
+  border-radius: 12px;
   font-size: 16px;
-  box-sizing: border-box;
+  outline: none;
+  transition: border 0.3s ease;
+}
+
+input:focus {
+  border-color: #2575fc;
 }
 
 button {
-  padding: 10px 20px;
+  padding: 12px 24px;
   margin: 5px;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   background: linear-gradient(to right, #6a11cb, #2575fc);
   color: white;
   cursor: pointer;
   font-size: 16px;
-  transition: background 0.3s;
+  transition: all 0.3s ease;
 }
 
 button:hover {
   background: linear-gradient(to right, #2575fc, #6a11cb);
+  transform: translateY(-1px);
 }
 
 .chat-box {
-  max-height: 60vh;
+  max-height: 65vh;
   overflow-y: auto;
   background-color: #f1f4fc;
-  padding: 1rem;
-  border-radius: 12px;
+  padding: 1.2rem;
+  border-radius: 16px;
   margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  scrollbar-width: thin;
+  scrollbar-color: #a0a0a0 transparent;
+}
+
+.chat-box::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-box::-webkit-scrollbar-thumb {
+  background-color: #a0a0a0;
+  border-radius: 10px;
 }
 
 .message {
-  background-color: #e0ecff;
-  padding: 10px;
-  border-radius: 8px;
-  margin: 6px 0;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 15px;
   max-width: 75%;
   word-wrap: break-word;
   position: relative;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.08);
 }
 
 .message.sent {
   align-self: flex-end;
   background-color: #d1e7dd;
-  margin-left: auto;
 }
 
 .message.received {
@@ -88,12 +109,18 @@ button:hover {
   background-color: #f8d7da;
 }
 
+.message img {
+  max-width: 100%;
+  border-radius: 10px;
+  margin-top: 8px;
+}
+
 .message small {
   display: block;
   text-align: right;
   font-size: 12px;
-  color: #555;
-  margin-top: 4px;
+  color: #777;
+  margin-top: 6px;
 }
 
 .input-area {
@@ -108,20 +135,27 @@ button:hover {
 .input-area input[type="text"] {
   flex: 1 1 70%;
   min-width: 200px;
-  padding: 12px;
+  padding: 12px 15px;
   border: 2px solid #9d50bb;
-  border-radius: 10px;
+  border-radius: 12px;
   font-size: 16px;
+  outline: none;
+  transition: border 0.3s;
+}
+
+.input-area input[type="text"]:focus {
+  border-color: #2575fc;
 }
 
 .input-area .send-btn {
   flex: 0 0 auto;
-  padding: 10px 16px;
+  padding: 12px 18px;
 }
 
 .input-area .back-btn {
   flex-basis: 100%;
   text-align: center;
+  margin-top: 10px;
 }
 
 @media (max-width: 480px) {
@@ -158,22 +192,4 @@ button:hover {
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
-}
-@media (max-width: 768px) {
-  .app-container {
-    padding: 0.5rem;
-  }
-
-  .form-container, .chat-container {
-    width: 90%;
-    padding: 1.5rem;
-  }
-
-  .heading {
-    font-size: 1.5rem;
-  }
-
-  input, button {
-    font-size: 14px;
-  }
 }
