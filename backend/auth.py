@@ -21,23 +21,22 @@ def register():
         password = data.get('password')
 
         if not phone or not password:
-            return jsonify({"success": False, "message": "Phone and password are required"}), 400
+            return jsonify({"success": False, "message": "Phone number and password are required"}), 400
 
-        if len(phone) != 10 or not phone.isdigit():
-            return jsonify({"success": False, "message": "Phone must be a 10-digit number"}), 400
-
-        if User.query.filter_by(phone=phone).first():
+        if User.query.filter_by(email=phone).first():
             return jsonify({"success": False, "message": "User already exists"}), 400
 
-        password_hash = generate_password_hash(password)
-        new_user = User(phone=phone, password_hash=password_hash)
+        password_hash = generate_password_hash(str(password))
+        new_user = User(email=phone, password_hash=password_hash)
         db.session.add(new_user)
         db.session.commit()
 
         return jsonify({"success": True, "message": "Registered successfully"})
 
     except Exception as e:
-        return jsonify({"success": False, "message": "Internal server error"}), 500
+        # For debugging only — remove in production
+        return jsonify({"success": False, "message": f"Internal server error: {str(e)}"}), 500
+
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
