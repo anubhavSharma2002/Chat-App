@@ -10,7 +10,7 @@ import cloudinary
 import cloudinary.uploader
 import uuid
 
-from models import db, Message
+from models import db, Message, User  # ✅ Ensure User model is imported
 from auth import auth_bp
 
 app = Flask(__name__)
@@ -75,7 +75,7 @@ def download_image():
             resource_type='image',
             type='upload',
             secure=True,
-            flags='attachment'  # Forces download
+            flags='attachment'
         )
         return jsonify({'download_url': url})
     except Exception as e:
@@ -108,7 +108,7 @@ def handle_message(data):
         'message': message,
         'image_url': image_url,
         'timestamp': new_msg.timestamp.isoformat()
-    }, to=room, broadcast=True)  # ✅ Sender will now also receive the message
+    }, to=room, broadcast=True)
 
 @app.route('/messages/<sender>/<receiver>', methods=['GET'])
 def get_messages(sender, receiver):
@@ -147,13 +147,20 @@ def handle_delete_message(data):
         room = get_room_name(msg.sender, msg.receiver)
         emit('message_deleted', {"message_id": msg_id}, to=room)
 
-app.register_blueprint(auth_bp, url_prefix='/auth')
+@app.route('/auth/check-user', methods=['POST'])
+def check_user():
+    data = request.get_json()
+    phone = data.get('email')
+    user = User.query.filter_by(email=phone).first()
+    return jsonify({'exists': bool(user)})
 
 @app.route('/reset-db')
 def reset_db():
     db.drop_all()
     db.create_all()
     return "Database reset successfully"
+
+app.register_blueprint(auth_bp, url_prefix='/auth')
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))

@@ -33,7 +33,7 @@ function UserSelect({ userId, setChatWith, setScreen, onLogout }) {
     let names = JSON.parse(localStorage.getItem(`${userId}_contactNames`)) || {};
 
     if (!history.includes(chatUserId)) {
-      history.unshift(chatUserId); // put most recent chat on top
+      history.unshift(chatUserId);
       localStorage.setItem(`${userId}_chatHistory`, JSON.stringify(history));
     }
 
