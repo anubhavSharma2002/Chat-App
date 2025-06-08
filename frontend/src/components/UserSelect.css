@@ -134,7 +134,14 @@
 .edit-btn {
   float: right;
   margin: 10px;
-  padding: 5px 10px;
   font-size: 14px;
   cursor: pointer;
+  background: #3a0ca3;
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+  padding: 8px 12px;
+  position: absolute;
+  top: 15px;
 }
