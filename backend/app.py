@@ -90,9 +90,16 @@ def handle_message(data):
     receiver = data['receiver']
     message = data.get('message', '')
     image_url = data.get('image_url', '')
+    public_id = data.get('public_id', '')  # Get public_id from client
     room = get_room_name(sender, receiver)
 
-    new_msg = Message(sender=sender, receiver=receiver, message=message, image_url=image_url)
+    new_msg = Message(
+        sender=sender,
+        receiver=receiver,
+        message=message,
+        image_url=image_url,
+        public_id=public_id
+    )
     db.session.add(new_msg)
     db.session.commit()
 
@@ -102,8 +109,9 @@ def handle_message(data):
         'receiver': receiver,
         'message': message,
         'image_url': image_url,
+        'public_id': public_id,
         'timestamp': new_msg.timestamp.isoformat()
-    }, to=room, broadcast=True)  # ✅ Sender will now also receive the message
+    }, to=room, broadcast=True)
 
 @app.route('/messages/<sender>/<receiver>', methods=['GET'])
 def get_messages(sender, receiver):
@@ -119,6 +127,7 @@ def get_messages(sender, receiver):
             "receiver": msg.receiver,
             "message": msg.message,
             "image_url": msg.image_url,
+            "public_id": msg.public_id,
             "timestamp": msg.timestamp.isoformat()
         } for msg in messages
     ])

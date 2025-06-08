@@ -160,8 +160,12 @@ function ChatBox({ sender, receiver, onBack }) {
           <div
             key={msg.id}
             className={`message ${msg.sender === sender ? 'sent' : 'received'} ${selectedMessageId === msg.id ? 'selected' : ''}`}
-            onClick={() => handleSelect(msg.id)}
-          >
+            onDoubleClick={() => handleSelect(msg.id)} // desktop
+            onTouchStart={() => {
+              this.longPressTimer = setTimeout(() => handleSelect(msg.id), 600);
+            }}
+            onTouchEnd={() => clearTimeout(this.longPressTimer)}
+      >
             {msg.message && <p>{msg.message}</p>}
             {msg.image_url && (
               <div className="image-container">
