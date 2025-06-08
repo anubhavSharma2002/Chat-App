@@ -3,10 +3,8 @@ import './App.css';
 import Login from './components/Login';
 import Register from './components/Register';
 import ForgotPassword from './components/ForgotPassword';
-import UserSelect from './components/UserSelect';
-import ChatBox from './components/ChatBox';
-import EmojiSpinner from './components/EmojiSpinner';
 import MainChat from './components/MainChat';
+import EmojiSpinner from './components/EmojiSpinner';
 
 function App() {
   const [screen, setScreen] = useState('login');
@@ -17,8 +15,8 @@ function App() {
     const savedUserId = localStorage.getItem('userId');
     if (savedUserId) {
       setUserId(savedUserId);
-      setScreen('userselect');
-      window.history.pushState({ screen: 'userselect' }, 'userselect');
+      setScreen('mainchat');
+      window.history.pushState({ screen: 'mainchat' }, 'mainchat');
     }
 
     const handlePopState = (event) => {
@@ -77,9 +75,11 @@ function App() {
             />
           )}
           {screen === 'mainchat' && (
-            <MainChat userId={userId} onLogout={handleLogout} />
+            <MainChat
+              userId={userId}
+              onLogout={handleLogout}
+            />
           )}
-
         </>
       )}
     </div>
