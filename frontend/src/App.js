@@ -64,7 +64,7 @@ function App() {
               onLogin={handleLogin}
               onSwitch={() => transitionScreen('register')}
               onForgot={() => transitionScreen('forgot')}
-            />
+            >placeholder</Login>
           )}
           {screen === 'register' && (
             <Register
