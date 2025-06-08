@@ -165,6 +165,8 @@ def reset_db():
     db.create_all()
     return "Database reset successfully"
 
+#https://chat-app-4apm.onrender.com/reset-db
+
 @app.route('/user-info/<email>', methods=['GET'])
 def get_user_info(email):
     user = User.query.filter_by(email=email).first()
