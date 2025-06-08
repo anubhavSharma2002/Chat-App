@@ -8,19 +8,21 @@ function Register({ onLogin }) {
   const isValidPhone = (number) => /^[6-9]\d{9}$/.test(number);
 
   const handleRegister = async () => {
-    if (!isValidPhone(phone)) {
-      alert('Enter a valid 10-digit phone number starting with 6-9');
-      return;
-    }
+  if (!isValidPhone(phone)) {
+    alert('Enter a valid 10-digit phone number starting with 6-9');
+    return;
+  }
 
-    try {
-      const res = await api.post('/auth/register', { email: phone, password });
-      alert(res.data.message);
-      onLogin();
-    } catch (err) {
-      alert(err.response?.data?.message || 'Registration failed');
-    }
-  };
+  try {
+    // Send phone as 'phone' key to backend, not 'email'
+    const res = await api.post('/auth/register', { phone, password });
+    alert(res.data.message);
+    onLogin();
+  } catch (err) {
+    alert(err.response?.data?.message || 'Registration failed');
+  }
+};
+
 
   const handleKey = (e) => {
     if (e.key === 'Enter') handleRegister();
