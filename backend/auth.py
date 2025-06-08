@@ -17,8 +17,9 @@ def register_options():
 def register():
     try:
         data = request.get_json()
-        email = data.get('email')  # phone number passed as 'email'
+        email = data.get('phone')  # phone number as 'email'
         password = data.get('password')
+        name = data.get('name')
 
         if not email or not password:
             return jsonify({"success": False, "message": "Phone number and password required"}), 400
@@ -27,7 +28,7 @@ def register():
             return jsonify({"success": False, "message": "User already exists"}), 400
 
         password_hash = generate_password_hash(str(password))
-        new_user = User(email=email, password_hash=password_hash)
+        new_user = User(email=email, password_hash=password_hash, name=name)
         db.session.add(new_user)
         db.session.commit()
 
