@@ -1,6 +1,8 @@
+// UserSelect.js
+
 import React, { useEffect, useState } from 'react';
 import { api } from '../api';
-import { FaBook, FaTrashAlt } from 'react-icons/fa';
+import { FaBook } from 'react-icons/fa';
 import './UserSelect.css';
 import io from 'socket.io-client';
 
@@ -10,28 +12,13 @@ function UserSelect({ userId, setChatWith, setScreen, onLogout }) {
   const [otherId, setOtherId] = useState('');
   const [chatHistory, setChatHistory] = useState([]);
   const [contactNames, setContactNames] = useState({});
+  const [editMode, setEditMode] = useState(false);
 
   useEffect(() => {
     const history = JSON.parse(localStorage.getItem(`${userId}_chatHistory`)) || [];
     const names = JSON.parse(localStorage.getItem(`${userId}_contactNames`)) || {};
     setChatHistory(history);
     setContactNames(names);
-
-    // For any unknown users in history, fetch their name from backend
-    history.forEach(async (id) => {
-      if (!names[id]) {
-        try {
-          const res = await api.get(`/user-info/${id}`);
-          if (res.data.name) {
-            const updatedNames = { ...names, [id]: res.data.name };
-            setContactNames(updatedNames);
-            localStorage.setItem(`${userId}_contactNames`, JSON.stringify(updatedNames));
-          }
-        } catch {
-          // User not found or error - just ignore
-        }
-      }
-    });
 
     socket.on('receive_message', (data) => {
       if (data.receiver === userId) {
@@ -97,8 +84,13 @@ function UserSelect({ userId, setChatWith, setScreen, onLogout }) {
         const name = contact?.name?.[0];
 
         if (phoneNumber && /^[6-9]\d{9}$/.test(phoneNumber)) {
-          setOtherId(phoneNumber);
-          addToChatHistory(phoneNumber, name || '');
+          const res = await api.post('/auth/check-user', { email: phoneNumber });
+          if (res.data.exists) {
+            setOtherId(phoneNumber);
+            addToChatHistory(phoneNumber, name || '');
+          } else {
+            alert('This contact is not a registered user.');
+          }
         } else {
           alert('Selected contact does not have a valid 10-digit mobile number.');
         }
@@ -110,29 +102,31 @@ function UserSelect({ userId, setChatWith, setScreen, onLogout }) {
     }
   };
 
-  // New: Remove user from recent chats
-  const handleDeleteChat = (id) => {
-    let history = JSON.parse(localStorage.getItem(`${userId}_chatHistory`)) || [];
-    let names = JSON.parse(localStorage.getItem(`${userId}_contactNames`)) || {};
-
-    history = history.filter(item => item !== id);
-    delete names[id];
-
-    localStorage.setItem(`${userId}_chatHistory`, JSON.stringify(history));
-    localStorage.setItem(`${userId}_contactNames`, JSON.stringify(names));
-
-    setChatHistory(history);
-    setContactNames(names);
+  const handleChatHistoryClick = (id) => {
+    if (!editMode) {
+      setChatWith(id);
+      setScreen('chat');
+    }
   };
 
-  const handleChatHistoryClick = (id) => {
-    setChatWith(id);
-    setScreen('chat');
+  const handleDeleteChat = (idToDelete) => {
+    const updatedHistory = chatHistory.filter(id => id !== idToDelete);
+    const updatedNames = { ...contactNames };
+    delete updatedNames[idToDelete];
+
+    localStorage.setItem(`${userId}_chatHistory`, JSON.stringify(updatedHistory));
+    localStorage.setItem(`${userId}_contactNames`, JSON.stringify(updatedNames));
+    setChatHistory(updatedHistory);
+    setContactNames(updatedNames);
   };
 
   return (
     <div className="user-select-container">
       <button className="logout-btn" onClick={onLogout}>Logout</button>
+      <button className="edit-btn" onClick={() => setEditMode(!editMode)}>
+        {editMode ? 'Done' : 'Edit'}
+      </button>
+
       <h2 className="heading">Start Chat</h2>
       <div className="input-row">
         <div className="input-icon-wrapper">
@@ -155,7 +149,7 @@ function UserSelect({ userId, setChatWith, setScreen, onLogout }) {
             <thead>
               <tr>
                 <th>Contact</th>
-                <th>Action</th> {/* New header for delete */}
+                {editMode && <th>Delete</th>}
               </tr>
             </thead>
             <tbody>
@@ -164,15 +158,11 @@ function UserSelect({ userId, setChatWith, setScreen, onLogout }) {
                   <td onClick={() => handleChatHistoryClick(id)} style={{ cursor: 'pointer' }}>
                     {contactNames[id] || id}
                   </td>
-                  <td>
-                    <button
-                      onClick={() => handleDeleteChat(id)}
-                      className="delete-btn"
-                      title="Delete from recent chats"
-                    >
-                      <FaTrashAlt />
-                    </button>
-                  </td>
+                  {editMode && (
+                    <td>
+                      <button onClick={() => handleDeleteChat(id)}>❌</button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
