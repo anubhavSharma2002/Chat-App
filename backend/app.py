@@ -97,16 +97,6 @@ def handle_message(data):
 
     new_msg = Message(sender=sender, receiver=receiver, message=message, image_url=image_url)
     db.session.add(new_msg)
-
-    # Update recent_chats for both users
-    sender_user = User.query.filter_by(email=sender).first()
-    receiver_user = User.query.filter_by(email=receiver).first()
-
-    if sender_user and receiver not in sender_user.recent_chats:
-        sender_user.recent_chats.append(receiver)
-    if receiver_user and sender not in receiver_user.recent_chats:
-        receiver_user.recent_chats.append(sender)
-
     db.session.commit()
 
     emit('receive_message', {
@@ -162,17 +152,10 @@ def check_user():
     user = User.query.filter_by(email=email).first()
     return jsonify({'exists': bool(user)})
 
-@app.route('/auth/recent-chats/<email>', methods=['GET'])
-def get_recent_chats(email):
-    user = User.query.filter_by(email=email).first()
-    if not user:
-        return jsonify({"error": "User not found"}), 404
-
-    recent_users = User.query.filter(User.email.in_(user.recent_chats)).all()
-    return jsonify([
-        {"email": u.email, "name": u.name}
-        for u in recent_users
-    ])
+@app.route('/auth/recent-chats/<user_id>', methods=['GET'])
+def get_recent_chats(user_id):
+    # Placeholder for recent chats
+    return jsonify({"recent_chats": []})
 
 @app.route('/reset-db')
 def reset_db():
@@ -186,11 +169,13 @@ def get_user_info(email):
     if user:
         return jsonify({
             'email': user.email,
-            'name': user.name or ''
+            'name': user.name if hasattr(user, 'name') else ''
         })
     return jsonify({'error': 'User not found'}), 404
 
 app.register_blueprint(auth_bp, url_prefix='/auth')
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
+    with app.app_context():
+        db.create_all()
+    socketio.run(app, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))

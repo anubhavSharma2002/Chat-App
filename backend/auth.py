@@ -17,42 +17,40 @@ def register_options():
 def register():
     try:
         data = request.get_json()
-        phone = data.get('phone')
+        email = data.get('email')  # phone number passed as 'email'
         password = data.get('password')
 
-        if not phone or not password:
-            return jsonify({"success": False, "message": "Phone number and password are required"}), 400
+        if not email or not password:
+            return jsonify({"success": False, "message": "Phone number and password required"}), 400
 
-        if User.query.filter_by(email=phone).first():
+        if User.query.filter_by(email=email).first():
             return jsonify({"success": False, "message": "User already exists"}), 400
 
         password_hash = generate_password_hash(str(password))
-        new_user = User(email=phone, password_hash=password_hash)
+        new_user = User(email=email, password_hash=password_hash)
         db.session.add(new_user)
         db.session.commit()
 
         return jsonify({"success": True, "message": "Registered successfully"})
 
     except Exception as e:
-        return jsonify({"success": False, "message": f"Internal server error: {str(e)}"}), 500
-
-
+        return jsonify({"success": False, "message": "Internal server error"}), 500
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
-    phone = data.get('phone')
+    email = data.get('email')
     password = data.get('password')
 
-    user = User.query.filter_by(phone=phone).first()
+    user = User.query.filter_by(email=email).first()
     if user and check_password_hash(user.password_hash, password):
-        return jsonify({"success": True, "user_id": user.phone})
+        return jsonify({"success": True, "user_id": user.email})
     return jsonify({"success": False, "message": "Invalid credentials"}), 401
 
 @auth_bp.route('/forgot-password', methods=['POST'])
 def forgot_password():
     data = request.get_json()
-    user = User.query.filter_by(phone=data.get('phone')).first()
+    user = User.query.filter_by(email=data['email']).first()
     if user:
         return jsonify({"success": True, "message": "Password reset not implemented"})
     return jsonify({"success": False, "message": "User not found"}), 404
@@ -60,32 +58,32 @@ def forgot_password():
 @auth_bp.route('/check-user', methods=['POST'])
 def check_user():
     data = request.get_json()
-    phone = data.get('phone')
-    user = User.query.filter_by(phone=phone).first()
+    email = data.get('email')
+    user = User.query.filter_by(email=email).first()
     return jsonify({"exists": bool(user)})
 
 @auth_bp.route('/valid-users', methods=['POST'])
 def get_valid_users():
     data = request.get_json()
-    phones = data.get('phones', [])
-    valid_users = User.query.filter(User.phone.in_(phones)).all()
+    emails = data.get('emails', [])
+    valid_users = User.query.filter(User.email.in_(emails)).all()
     return jsonify([
-        {"phone": user.phone, "name": user.name if user.name else ""}
+        {"email": user.email, "name": user.name}
         for user in valid_users
     ])
 
 @auth_bp.route('/remove-recent-chat', methods=['POST'])
 def remove_recent_chat():
     data = request.get_json()
-    user_phone = data.get('user_phone')
-    target_phone = data.get('target_phone')
+    user_email = data.get('user_email')
+    target_email = data.get('target_email')
 
-    user = User.query.filter_by(phone=user_phone).first()
+    user = User.query.filter_by(email=user_email).first()
     if not user:
         return jsonify({"error": "User not found"}), 404
 
-    if user.recent_chats and target_phone in user.recent_chats:
-        user.recent_chats.remove(target_phone)
+    if user.recent_chats and target_email in user.recent_chats:
+        user.recent_chats.remove(target_email)
         db.session.commit()
 
     return jsonify({"success": True})
