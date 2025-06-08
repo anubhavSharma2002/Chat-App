@@ -71,4 +71,3 @@ def check_user():
     data = request.get_json()
     user = User.query.filter_by(email=data['email']).first()
     return jsonify({"exists": bool(user)})
-
