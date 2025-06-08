@@ -8,17 +8,19 @@ from flask_cors import CORS
 import os
 import cloudinary
 import cloudinary.uploader
-import cloudinary.utils
 import uuid
 
-from models import db, Message, User
+from models import db, Message
 from auth import auth_bp
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
+
+# PostgreSQL config
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://chat_app_db_4lkr_user:QAmEWmOHpGElG2C0fZiVU67ZNeu1ZMhc@dpg-d11575ali9vc738dfifg-a/chat_app_db_4lkr'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# Cloudinary config
 cloudinary.config(
     cloud_name='dwxi8oubd',
     api_key='737445128586493',
@@ -61,23 +63,18 @@ def upload_file():
 
     return jsonify({'error': 'Invalid file type'}), 400
 
-@app.route('/download-image')
-def download_image():
+@app.route('/download-image', methods=['GET'])
+def get_download_link():
     public_id = request.args.get('public_id')
     if not public_id:
-        return jsonify({'error': 'Missing public_id'}), 400
+        return jsonify({'error': 'Public ID is required'}), 400
 
-    try:
-        url, _ = cloudinary.utils.cloudinary_url(
-            public_id,
-            resource_type='image',
-            type='upload',
-            secure=True,
-            flags='attachment'
-        )
-        return jsonify({'download_url': url})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    download_url = cloudinary.CloudinaryImage(public_id).build_url(
+        flags="attachment",
+        secure=True
+    )
+
+    return jsonify({'download_url': download_url})
 
 def get_room_name(user1, user2):
     return '_'.join(sorted([user1, user2]))
@@ -106,7 +103,7 @@ def handle_message(data):
         'message': message,
         'image_url': image_url,
         'timestamp': new_msg.timestamp.isoformat()
-    }, to=room, broadcast=True)
+    }, to=room, broadcast=True)  # ✅ Sender will now also receive the message
 
 @app.route('/messages/<sender>/<receiver>', methods=['GET'])
 def get_messages(sender, receiver):
@@ -145,17 +142,7 @@ def handle_delete_message(data):
         room = get_room_name(msg.sender, msg.receiver)
         emit('message_deleted', {"message_id": msg_id}, to=room)
 
-@app.route('/auth/check-user', methods=['POST'])
-def check_user():
-    data = request.get_json()
-    email = data.get('email')
-    user = User.query.filter_by(email=email).first()
-    return jsonify({'exists': bool(user)})
-
-@app.route('/auth/recent-chats/<user_id>', methods=['GET'])
-def get_recent_chats(user_id):
-    # Placeholder for recent chats
-    return jsonify({"recent_chats": []})
+app.register_blueprint(auth_bp, url_prefix='/auth')
 
 @app.route('/reset-db')
 def reset_db():
@@ -163,19 +150,5 @@ def reset_db():
     db.create_all()
     return "Database reset successfully"
 
-@app.route('/user-info/<email>', methods=['GET'])
-def get_user_info(email):
-    user = User.query.filter_by(email=email).first()
-    if user:
-        return jsonify({
-            'email': user.email,
-            'name': user.name if hasattr(user, 'name') else ''
-        })
-    return jsonify({'error': 'User not found'}), 404
-
-app.register_blueprint(auth_bp, url_prefix='/auth')
-
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-    socketio.run(app, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
+    socketio.run(app, host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
