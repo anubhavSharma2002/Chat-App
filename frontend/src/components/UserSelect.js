@@ -17,14 +17,14 @@ function UserSelect({ userId, setChatWith, setScreen, onLogout }) {
     setChatHistory(history);
     setContactNames(names);
 
-    socket.on('receive-message', (data) => {
+    socket.on('receive_message', (data) => {
       if (data.receiver === userId) {
         addToChatHistory(data.sender);
       }
     });
 
     return () => {
-      socket.off('receive-message');
+      socket.off('receive_message');
     };
   }, [userId]);
 

@@ -8,19 +8,17 @@ from flask_cors import CORS
 import os
 import cloudinary
 import cloudinary.uploader
+import cloudinary.utils
 import uuid
 
-from models import db, Message, User  # ✅ Ensure User model is imported
+from models import db, Message, User
 from auth import auth_bp
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
-
-# PostgreSQL config
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://chat_app_db_4lkr_user:QAmEWmOHpGElG2C0fZiVU67ZNeu1ZMhc@dpg-d11575ali9vc738dfifg-a/chat_app_db_4lkr'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Cloudinary config
 cloudinary.config(
     cloud_name='dwxi8oubd',
     api_key='737445128586493',
