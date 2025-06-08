@@ -84,6 +84,10 @@ function App() {
       )}
     </div>
   );
+  console.log("React screen state:", screen);
+console.log("React loading state:", loading);
+
+  
 }
 
 export default App;
