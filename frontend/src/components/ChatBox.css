@@ -5,8 +5,7 @@
   font-family: Arial, sans-serif;
   position: relative;
   display: flex;
-  flex-direction: column;
-  height: 100%;
+  
 }
 
 .chatbox-header {

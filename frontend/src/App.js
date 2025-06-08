@@ -3,20 +3,22 @@ import './App.css';
 import Login from './components/Login';
 import Register from './components/Register';
 import ForgotPassword from './components/ForgotPassword';
-import MainChat from './components/MainChat';
+import UserSelect from './components/UserSelect';
+import ChatBox from './components/ChatBox';
 import EmojiSpinner from './components/EmojiSpinner';
 
 function App() {
   const [screen, setScreen] = useState('login');
   const [userId, setUserId] = useState('');
+  const [chatWith, setChatWith] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const savedUserId = localStorage.getItem('userId');
     if (savedUserId) {
       setUserId(savedUserId);
-      setScreen('mainchat');
-      window.history.pushState({ screen: 'mainchat' }, 'mainchat');
+      setScreen('userselect');
+      window.history.pushState({ screen: 'userselect' }, 'userselect');
     }
 
     const handlePopState = (event) => {
@@ -42,13 +44,19 @@ function App() {
   const handleLogin = (id) => {
     setUserId(id);
     localStorage.setItem('userId', id);
-    transitionScreen('mainchat');
+    transitionScreen('userselect');
   };
 
   const handleLogout = () => {
     setUserId('');
+    setChatWith('');
     localStorage.removeItem('userId');
     transitionScreen('login');
+  };
+
+  const handleChatStart = (partnerId) => {
+    setChatWith(partnerId);
+    transitionScreen('chat');
   };
 
   return (
@@ -74,10 +82,19 @@ function App() {
               onBack={() => transitionScreen('login')}
             />
           )}
-          {screen === 'mainchat' && (
-            <MainChat
+          {screen === 'userselect' && (
+            <UserSelect
               userId={userId}
+              setChatWith={handleChatStart}
+              setScreen={setScreen}
               onLogout={handleLogout}
+            />
+          )}
+          {screen === 'chat' && (
+            <ChatBox
+              sender={userId}
+              receiver={chatWith}
+              onBack={() => transitionScreen('userselect')}
             />
           )}
         </>
