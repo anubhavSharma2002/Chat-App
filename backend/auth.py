@@ -34,8 +34,8 @@ def register():
         return jsonify({"success": True, "message": "Registered successfully"})
 
     except Exception as e:
-        # For debugging only — remove in production
         return jsonify({"success": False, "message": f"Internal server error: {str(e)}"}), 500
+
 
 
 @auth_bp.route('/login', methods=['POST'])
