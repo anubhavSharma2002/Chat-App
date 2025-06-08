@@ -21,7 +21,7 @@
 
 .logout-btn {
   position: absolute;
-  top: 15px;
+  top: 5px;
   right: 20px;
   background: #3a0ca3;
   color: white;
@@ -143,5 +143,5 @@
   cursor: pointer;
   padding: 8px 12px;
   position: absolute;
-  top: 15px;
+  top: 3px;
 }
