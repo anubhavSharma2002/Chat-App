@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { api } from '../api';
 
 function Register({ onLogin }) {
-  const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
 
@@ -15,7 +14,7 @@ function Register({ onLogin }) {
     }
 
     try {
-      const res = await api.post('/auth/register', { phone, password, name });
+      const res = await api.post('/auth/register', { email: phone, password });
       alert(res.data.message);
       onLogin();
     } catch (err) {
@@ -30,11 +29,6 @@ function Register({ onLogin }) {
   return (
     <div className="form-container">
       <h2>Register</h2>
-      <input
-        placeholder="Name"
-        onChange={e => setName(e.target.value)}
-        onKeyDown={handleKey}
-      />
       <input
         placeholder="Phone Number"
         onChange={e => setPhone(e.target.value)}
