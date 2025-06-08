@@ -6,11 +6,11 @@ import ForgotPassword from './components/ForgotPassword';
 import UserSelect from './components/UserSelect';
 import ChatBox from './components/ChatBox';
 import EmojiSpinner from './components/EmojiSpinner';
+import MainChat from './components/MainChat';
 
 function App() {
   const [screen, setScreen] = useState('login');
   const [userId, setUserId] = useState('');
-  const [chatWith, setChatWith] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -44,19 +44,13 @@ function App() {
   const handleLogin = (id) => {
     setUserId(id);
     localStorage.setItem('userId', id);
-    transitionScreen('userselect');
+    transitionScreen('mainchat');
   };
 
   const handleLogout = () => {
     setUserId('');
-    setChatWith('');
     localStorage.removeItem('userId');
     transitionScreen('login');
-  };
-
-  const handleChatStart = (partnerId) => {
-    setChatWith(partnerId);
-    transitionScreen('chat');
   };
 
   return (
@@ -82,21 +76,10 @@ function App() {
               onBack={() => transitionScreen('login')}
             />
           )}
-          {screen === 'userselect' && (
-            <UserSelect
-              userId={userId}
-              setChatWith={handleChatStart}
-              setScreen={setScreen}
-              onLogout={handleLogout}
-            />
+          {screen === 'mainchat' && (
+            <MainChat userId={userId} onLogout={handleLogout} />
           )}
-          {screen === 'chat' && (
-            <ChatBox
-              sender={userId}
-              receiver={chatWith}
-              onBack={() => transitionScreen('userselect')}
-            />
-          )}
+
         </>
       )}
     </div>
