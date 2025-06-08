@@ -148,9 +148,16 @@ def handle_delete_message(data):
 @app.route('/auth/check-user', methods=['POST'])
 def check_user():
     data = request.get_json()
-    phone = data.get('email')
-    user = User.query.filter_by(email=phone).first()
+    email = data.get('email')
+    user = User.query.filter_by(email=email).first()
     return jsonify({'exists': bool(user)})
+
+@app.route('/auth/recent-chats/<user_id>', methods=['GET'])
+def get_recent_chats(user_id):
+    # Placeholder for server-side recent chat sync
+    # You can implement storing recent chats on server DB later
+    # For now, return empty list or basic info
+    return jsonify({"recent_chats": []})
 
 @app.route('/reset-db')
 def reset_db():

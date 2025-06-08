@@ -11,11 +11,21 @@ function UserSelect({ userId, setChatWith, setScreen, onLogout }) {
   const [chatHistory, setChatHistory] = useState([]);
   const [contactNames, setContactNames] = useState({});
 
+  // Fetch recent chats from server on mount
   useEffect(() => {
-    const history = JSON.parse(localStorage.getItem(`${userId}_chatHistory`)) || [];
-    const names = JSON.parse(localStorage.getItem(`${userId}_contactNames`)) || {};
-    setChatHistory(history);
-    setContactNames(names);
+    async function fetchRecentChats() {
+      try {
+        const res = await api.get(`/users/${userId}/recent-chats`);
+        const chats = res.data.recent_chats || [];
+        setChatHistory(chats);
+      } catch {
+        // fallback to localStorage if server fails
+        const history = JSON.parse(localStorage.getItem(`${userId}_chatHistory`)) || [];
+        setChatHistory(history);
+      }
+    }
+
+    fetchRecentChats();
 
     socket.on('receive_message', (data) => {
       if (data.receiver === userId) {
@@ -28,22 +38,31 @@ function UserSelect({ userId, setChatWith, setScreen, onLogout }) {
     };
   }, [userId]);
 
-  const addToChatHistory = (chatUserId, name = '') => {
-    let history = JSON.parse(localStorage.getItem(`${userId}_chatHistory`)) || [];
-    let names = JSON.parse(localStorage.getItem(`${userId}_contactNames`)) || {};
+  // Helper to sync chat history to backend and localStorage
+  const syncRecentChats = async (history) => {
+    localStorage.setItem(`${userId}_chatHistory`, JSON.stringify(history));
+    try {
+      await api.post(`/users/${userId}/recent-chats`, { recent_chats: history });
+    } catch {
+      // handle errors if needed
+    }
+  };
+
+  const addToChatHistory = async (chatUserId, name = '') => {
+    let history = [...chatHistory];
+    let names = {...contactNames};
 
     if (!history.includes(chatUserId)) {
       history.unshift(chatUserId);
-      localStorage.setItem(`${userId}_chatHistory`, JSON.stringify(history));
+      setChatHistory(history);
+      syncRecentChats(history);
     }
 
     if (name && !names[chatUserId]) {
       names[chatUserId] = name;
+      setContactNames(names);
       localStorage.setItem(`${userId}_contactNames`, JSON.stringify(names));
     }
-
-    setChatHistory([...new Set(history)]);
-    setContactNames(names);
   };
 
   const handleStartChat = async () => {
@@ -81,8 +100,14 @@ function UserSelect({ userId, setChatWith, setScreen, onLogout }) {
         const name = contact?.name?.[0];
 
         if (phoneNumber && /^[6-9]\d{9}$/.test(phoneNumber)) {
-          setOtherId(phoneNumber);
-          addToChatHistory(phoneNumber, name || '');
+          // Check if user exists before adding
+          const res = await api.post('/auth/check-user', { email: phoneNumber });
+          if (res.data.exists) {
+            setOtherId(phoneNumber);
+            addToChatHistory(phoneNumber, name || '');
+          } else {
+            alert('Selected contact is not a registered user.');
+          }
         } else {
           alert('Selected contact does not have a valid 10-digit mobile number.');
         }

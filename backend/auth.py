@@ -1,7 +1,6 @@
 from flask import Blueprint, request, jsonify, make_response
 from models import db, User
 from werkzeug.security import generate_password_hash, check_password_hash
-import traceback
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -14,7 +13,6 @@ def register_options():
     response.headers.add("Access-Control-Allow-Credentials", "true")
     return response
 
-
 @auth_bp.route('/register', methods=['POST'])
 def register():
     try:
@@ -22,18 +20,13 @@ def register():
         email = data.get('email')
         password = data.get('password')
 
-        print(f"[REGISTER] Incoming data: {data}")
-        print(f"[REGISTER] Email: {email}, Password: {password}, Type: {type(password)}")
-
         if not email or not password:
             return jsonify({"success": False, "message": "Email and password required"}), 400
 
         if User.query.filter_by(email=email).first():
             return jsonify({"success": False, "message": "User already exists"}), 400
 
-        from werkzeug.security import generate_password_hash
         password_hash = generate_password_hash(str(password))  # Ensure it's string
-        print(f"[REGISTER] Hashed password: {password_hash}, Type: {type(password_hash)}")
 
         new_user = User(email=email, password_hash=password_hash)
         db.session.add(new_user)
@@ -42,8 +35,6 @@ def register():
         return jsonify({"success": True, "message": "Registered successfully"})
 
     except Exception as e:
-        import traceback
-        traceback.print_exc()
         return jsonify({"success": False, "message": "Internal server error"}), 500
 
 @auth_bp.route('/login', methods=['POST'])
@@ -69,5 +60,6 @@ def forgot_password():
 @auth_bp.route('/check-user', methods=['POST'])
 def check_user():
     data = request.get_json()
-    user = User.query.filter_by(email=data['email']).first()
+    email = data.get('email')
+    user = User.query.filter_by(email=email).first()
     return jsonify({"exists": bool(user)})
