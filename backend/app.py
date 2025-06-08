@@ -165,6 +165,17 @@ def reset_db():
     db.create_all()
     return "Database reset successfully"
 
+@app.route('/user-info/<email>', methods=['GET'])
+def get_user_info(email):
+    user = User.query.filter_by(email=email).first()
+    if user:
+        return jsonify({
+            'email': user.email,
+            'name': user.name if hasattr(user, 'name') else ''  # assuming you store name in User
+        })
+    return jsonify({'error': 'User not found'}), 404
+
+
 app.register_blueprint(auth_bp, url_prefix='/auth')
 
 if __name__ == '__main__':
