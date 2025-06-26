@@ -1,28 +1,29 @@
-// UserSelect.js
-
 import React, { useEffect, useState } from 'react';
 import { api } from '../api';
 import { FaBook } from 'react-icons/fa';
 import './UserSelect.css';
-import io from 'socket.io-client';
-
-const socket = io('https://chat-app-4apm.onrender.com');
+import socket from '../socket'; // ✅ use shared socket
 
 function UserSelect({ userId, setChatWith, setScreen, onLogout }) {
   const [otherId, setOtherId] = useState('');
   const [chatHistory, setChatHistory] = useState([]);
   const [contactNames, setContactNames] = useState({});
   const [editMode, setEditMode] = useState(false);
+  const [unreadMessages, setUnreadMessages] = useState({});
 
   useEffect(() => {
     const history = JSON.parse(localStorage.getItem(`${userId}_chatHistory`)) || [];
     const names = JSON.parse(localStorage.getItem(`${userId}_contactNames`)) || {};
+    const unread = JSON.parse(localStorage.getItem(`${userId}_unreadMessages`)) || {};
+
     setChatHistory(history);
     setContactNames(names);
+    setUnreadMessages(unread);
 
     socket.on('receive_message', (data) => {
       if (data.receiver === userId) {
         addToChatHistory(data.sender);
+        updateUnreadMessages(data.sender);
       }
     });
 
@@ -30,6 +31,23 @@ function UserSelect({ userId, setChatWith, setScreen, onLogout }) {
       socket.off('receive_message');
     };
   }, [userId]);
+
+  const updateUnreadMessages = (senderId) => {
+    setUnreadMessages(prev => {
+      const updated = { ...prev, [senderId]: true };
+      localStorage.setItem(`${userId}_unreadMessages`, JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const clearUnreadMessage = (chatUserId) => {
+    setUnreadMessages(prev => {
+      const updated = { ...prev };
+      delete updated[chatUserId];
+      localStorage.setItem(`${userId}_unreadMessages`, JSON.stringify(updated));
+      return updated;
+    });
+  };
 
   const addToChatHistory = (chatUserId, name = '') => {
     let history = JSON.parse(localStorage.getItem(`${userId}_chatHistory`)) || [];
@@ -59,6 +77,7 @@ function UserSelect({ userId, setChatWith, setScreen, onLogout }) {
       const res = await api.post('/auth/check-user', { email: otherId });
       if (res.data.exists) {
         addToChatHistory(otherId, otherId);
+        clearUnreadMessage(otherId);
         setChatWith(otherId);
         setScreen('chat');
       } else {
@@ -104,6 +123,7 @@ function UserSelect({ userId, setChatWith, setScreen, onLogout }) {
 
   const handleChatHistoryClick = (id) => {
     if (!editMode) {
+      clearUnreadMessage(id);
       setChatWith(id);
       setScreen('chat');
     }
@@ -112,12 +132,18 @@ function UserSelect({ userId, setChatWith, setScreen, onLogout }) {
   const handleDeleteChat = (idToDelete) => {
     const updatedHistory = chatHistory.filter(id => id !== idToDelete);
     const updatedNames = { ...contactNames };
+    const updatedUnread = { ...unreadMessages };
+
     delete updatedNames[idToDelete];
+    delete updatedUnread[idToDelete];
 
     localStorage.setItem(`${userId}_chatHistory`, JSON.stringify(updatedHistory));
     localStorage.setItem(`${userId}_contactNames`, JSON.stringify(updatedNames));
+    localStorage.setItem(`${userId}_unreadMessages`, JSON.stringify(updatedUnread));
+
     setChatHistory(updatedHistory);
     setContactNames(updatedNames);
+    setUnreadMessages(updatedUnread);
   };
 
   return (
@@ -157,6 +183,7 @@ function UserSelect({ userId, setChatWith, setScreen, onLogout }) {
                 <tr key={id}>
                   <td onClick={() => handleChatHistoryClick(id)} style={{ cursor: 'pointer' }}>
                     {contactNames[id] || id}
+                    {unreadMessages[id] && <span style={{ color: 'red', marginLeft: 8 }}>●</span>}
                   </td>
                   {editMode && (
                     <td>

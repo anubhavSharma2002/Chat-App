@@ -1,10 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import io from 'socket.io-client';
 import './ChatBox.css';
 import { FaPaperPlane, FaPaperclip, FaSmile } from 'react-icons/fa';
 import EmojiPicker from 'emoji-picker-react';
-
-const socket = io('https://chat-app-4apm.onrender.com');
+import socket from '../socket'; // ✅ use shared socket
 
 function ChatBox({ sender, receiver, onBack }) {
   const [message, setMessage] = useState('');
@@ -17,6 +15,7 @@ function ChatBox({ sender, receiver, onBack }) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [contactName, setContactName] = useState('');
   const bottomRef = useRef(null);
+  const longPressTimerRef = useRef(null); // ✅ Fix long press
 
   useEffect(() => {
     const names = JSON.parse(localStorage.getItem(`${sender}_contactNames`)) || {};
@@ -148,9 +147,7 @@ function ChatBox({ sender, receiver, onBack }) {
   return (
     <div className="chatbox">
       <div className="chatbox-header">
-        <button className="back-btn" onClick={() => {
-          if (onBack) onBack();
-          }}>← Back</button>
+        <button className="back-btn" onClick={onBack}>← Back</button>
         <h2>{contactName}</h2>
         {selectedMessageId && (
           <button className="delete-btn" onClick={handleDelete}>🗑️ Delete</button>
@@ -162,12 +159,12 @@ function ChatBox({ sender, receiver, onBack }) {
           <div
             key={msg.id}
             className={`message ${msg.sender === sender ? 'sent' : 'received'} ${selectedMessageId === msg.id ? 'selected' : ''}`}
-            onDoubleClick={() => handleSelect(msg.id)} // desktop
+            onDoubleClick={() => handleSelect(msg.id)}
             onTouchStart={() => {
-              this.longPressTimer = setTimeout(() => handleSelect(msg.id), 600);
+              longPressTimerRef.current = setTimeout(() => handleSelect(msg.id), 600);
             }}
-            onTouchEnd={() => clearTimeout(this.longPressTimer)}
-      >
+            onTouchEnd={() => clearTimeout(longPressTimerRef.current)}
+          >
             {msg.message && <p>{msg.message}</p>}
             {msg.image_url && (
               <div className="image-container">
@@ -203,7 +200,7 @@ function ChatBox({ sender, receiver, onBack }) {
       )}
 
       <div className="chat-input-bar">
-        <label htmlFor="file-input" className="attachment-icon"><FaPaperclip /></label>
+        <label htmlFor="file-input" className="attachment-icon" aria-label="Attach image"><FaPaperclip /></label>
         <input id="file-input" type="file" accept="image/*" onChange={handleImageChange} />
         <input
           type="text"
