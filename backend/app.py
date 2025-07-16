@@ -17,7 +17,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 
 # PostgreSQL config
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://chat_app_db_4lkr_user:QAmEWmOHpGElG2C0fZiVU67ZNeu1ZMhc@dpg-d11575ali9vc738dfifg-a/chat_app_db_4lkr'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://chat_app_db_mh56_user:85yCZ9q93BpWruIoRuYyFkPztYykoqqI@dpg-d1rvqe2li9vc73d5c6l0-a.oregon-postgres.render.com/chat_app_db_mh56'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Cloudinary config
