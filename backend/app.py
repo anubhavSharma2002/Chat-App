@@ -14,22 +14,35 @@ from models import db, Message
 from auth import auth_bp
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'secret!'
 
-# PostgreSQL config
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://chat_app_db_mh56_user:85yCZ9q93BpWruIoRuYyFkPztYykoqqI@dpg-d1rvqe2li9vc73d5c6l0-a.oregon-postgres.render.com/chat_app_db_mh56'
+# Use env var for secret, fallback for local dev
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret!')
+
+# PostgreSQL config: read from env var DATABASE_URL (or INTERNAL_DATABASE_URL)
+# Some platforms return 'postgres://' which SQLAlchemy may warn about; convert to 'postgresql://'
+database_url = os.environ.get('DATABASE_URL') or os.environ.get('INTERNAL_DATABASE_URL') or \
+               'postgresql://chat_app_db_mh56_user:85yCZ9q93BpWruIoRuYyFkPztYykoqqI@dpg-d1rvqe2li9vc73d5c6l0-a.oregon-postgres.render.com/chat_app_db_mh56'
+
+if database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+
+# If you need an explicit SSL mode add '?sslmode=require' or set it in env var
+# e.g. os.environ['DATABASE_URL'] = database_url + '?sslmode=require'
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Cloudinary config
+# Cloudinary config via env vars (set these in Render)
 cloudinary.config(
-    cloud_name='dwxi8oubd',
-    api_key='737445128586493',
-    api_secret='iyUN0_tytlInZ0oE5z1dxSRLwlc',
+    cloud_name=os.environ.get('CLOUDINARY_CLOUD_NAME', 'dwxi8oubd'),
+    api_key=os.environ.get('CLOUDINARY_API_KEY', '737445128586493'),
+    api_secret=os.environ.get('CLOUDINARY_API_SECRET', 'iyUN0_tytlInZ0oE5z1dxSRLwlc'),
     secure=True
 )
 
-CORS(app, supports_credentials=True)
-socketio = SocketIO(app, cors_allowed_origins=["https://baatkarona.vercel.app"])
+CORS_ORIGINS = os.environ.get('CORS_ORIGINS', 'https://baatkarona.vercel.app')
+CORS(app, supports_credentials=True, origins=CORS_ORIGINS.split(','))
+
+socketio = SocketIO(app, cors_allowed_origins=CORS_ORIGINS.split(','))
 db.init_app(app)
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'}
@@ -90,7 +103,7 @@ def handle_message(data):
     receiver = data['receiver']
     message = data.get('message', '')
     image_url = data.get('image_url', '')
-    public_id = data.get('public_id', '')  # Get public_id from client
+    public_id = data.get('public_id', '')
     room = get_room_name(sender, receiver)
 
     new_msg = Message(
@@ -155,9 +168,11 @@ app.register_blueprint(auth_bp, url_prefix='/auth')
 
 @app.route('/reset-db')
 def reset_db():
+    # WARNING: keep this endpoint protected/disabled in production.
     db.drop_all()
     db.create_all()
     return "Database reset successfully"
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
+    port = int(os.environ.get("PORT", 5000))
+    socketio.run(app, host='0.0.0.0', port=port)
