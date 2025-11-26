@@ -16,8 +16,14 @@ from auth import auth_bp
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 
-# PostgreSQL config
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://chat_app_db_mh56_user:85yCZ9q93BpWruIoRuYyFkPztYykoqqI@dpg-d1rvqe2li9vc73d5c6l0-a.oregon-postgres.render.com/chat_app_db_mh56'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
+    'DATABASE_URL',
+    "postgresql://chat_app_db_mh56_user:...@dpg-...render.com/chat_app_db_mh56"
+)
+
+# Ensure SSL is required
+if 'sslmode' not in app.config['SQLALCHEMY_DATABASE_URI']:
+    app.config['SQLALCHEMY_DATABASE_URI'] += '?sslmode=require'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Cloudinary config
